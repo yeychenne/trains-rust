@@ -1,0 +1,35 @@
+<svg viewBox="0 0 840 360" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif" role="img" aria-label="Multiple trains pipeline">
+  <title>Multiple concurrent trains (K=2) pipeline</title>
+  <desc>Two issuer slots circulate trains at the same time, offset, so the ring is never idle; aggregate throughput is roughly K times per-train throughput.</desc>
+  <rect x="0" y="0" width="840" height="360" rx="14" fill="#f8f9fb" stroke="#e2e6ee"/>
+  <text x="28" y="40" font-size="21" font-weight="700" fill="#1a2a3a">Multiple trains pipeline (K = 2 issuer slots)</text>
+  <text x="28" y="64" font-size="14" fill="#5b6b7d">Two trains circulate at once, offset in time — so the ring is never idle and throughput scales with K.</text>
+
+  <!-- time axis -->
+  <line x1="120" y1="300" x2="800" y2="300" stroke="#aab4c0" stroke-width="1.5"/>
+  <text x="800" y="324" font-size="12" fill="#8794a2" text-anchor="end">time →</text>
+
+  <!-- lane labels -->
+  <text x="28" y="135" font-size="13" font-weight="700" fill="#1456a0">Train A</text>
+  <text x="28" y="225" font-size="13" font-weight="700" fill="#9a6b00">Train B</text>
+
+  <!-- Train A: lap1 (blue) then lap2 (amber-ish deliver) -->
+  <rect x="120" y="110" width="260" height="44" rx="8" fill="#dbeafe" stroke="#1971c2" stroke-width="1.8"/>
+  <text x="250" y="138" font-size="13" font-weight="600" fill="#1456a0" text-anchor="middle">Lap 1 — gather → FULL_ACK</text>
+  <rect x="384" y="110" width="240" height="44" rx="8" fill="#ffe9bf" stroke="#c98a00" stroke-width="1.8"/>
+  <text x="504" y="138" font-size="13" font-weight="600" fill="#9a6b00" text-anchor="middle">Lap 2 — deliver</text>
+  <rect x="628" y="110" width="150" height="44" rx="8" fill="#eef2f6" stroke="#9aa7b5" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="703" y="138" font-size="12" fill="#5b6b7d" text-anchor="middle">recycle, clock++</text>
+
+  <!-- Train B: offset right by ~one lap -->
+  <rect x="250" y="200" width="260" height="44" rx="8" fill="#dbeafe" stroke="#1971c2" stroke-width="1.8"/>
+  <text x="380" y="228" font-size="13" font-weight="600" fill="#1456a0" text-anchor="middle">Lap 1 — gather → FULL_ACK</text>
+  <rect x="514" y="200" width="240" height="44" rx="8" fill="#ffe9bf" stroke="#c98a00" stroke-width="1.8"/>
+  <text x="634" y="228" font-size="13" font-weight="600" fill="#9a6b00" text-anchor="middle">Lap 2 — deliver</text>
+
+  <!-- "both active" slice -->
+  <line x1="430" y1="92" x2="430" y2="270" stroke="#e8590c" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="430" y="86" font-size="12" font-weight="700" fill="#e8590c" text-anchor="middle">any instant: both slots in flight</text>
+
+  <text x="120" y="348" font-size="13" fill="#34465a"><tspan font-weight="700" fill="#1a2a3a">Aggregate ≈ K × per-train throughput</tspan> — up to the weakest ring link. More slots, more parallel ordering.</text>
+</svg>

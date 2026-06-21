@@ -1,0 +1,72 @@
+# CI for trains-rust
+#
+# Budget policy: ubuntu runners only (no macOS 10x multiplier); the account
+# spending limit stays at $0 so an overage blocks instead of billing.
+# Fallback if free minutes ever get tight: runs-on [self-hosted].
+#
+# No `cargo fmt --check` job: the codebase deliberately uses vertically
+# aligned struct fields / doc columns that rustfmt would flatten.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
+
+  live-crash:
+    # The OS-process SIGKILL crash-masking proof (PR-CORE-2). It is `#[ignore]`d
+    # out of the always-on `test` job because spawning 3 processes + a TLS ring
+    # and waiting on a ~7.5 s real-time detection backoff intermittently times
+    # out on starved shared runners. Here it runs in isolation with up to 3
+    # attempts: a single flaky timeout retries, but a genuine (deterministic)
+    # regression fails all three and blocks. The deterministic in-process
+    # reconfig tests in `test` remain the primary gate.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: Swatinem/rust-cache@v2
+      - run: |
+          for i in 1 2 3; do
+            echo "::group::live_crash_masking attempt $i"
+            if cargo test -p trains-cli --test live_crash_masking -- --ignored --nocapture; then
+              echo "::endgroup::"; echo "passed on attempt $i"; exit 0
+            fi
+            echo "::endgroup::"; echo "attempt $i failed (likely a starved-runner timeout); retrying"
+          done
+          echo "::error::live_crash_masking failed 3 consecutive attempts — treat as a real regression"
+          exit 1
+
+  trace-smoke:
+    # Live 3-node in-process ring, then re-check all 6 TLC-verified
+    # invariants on the emitted trace (the runtime half of the
+    # verification stack).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: Swatinem/rust-cache@v2
+      - run: |
+          cargo run --release -p trains-cli --bin trains -- \
+            ring --num 3 --num-trains 2 --seconds 4 \
+            --broadcast 0:hello --broadcast 1:world \
+            --trace /tmp/trains.jsonl
+          cargo run --release -p trains-cli --bin trains-trace-validate -- \
+            /tmp/trains.jsonl

@@ -1,0 +1,80 @@
+<svg viewBox="0 0 860 380" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif" role="img" aria-label="TrainsNode step state machine">
+  <title>One TrainsNode — the step() state machine</title>
+  <desc>From Idle, a received train is classified by clock: lap 1 loads and acks, lap 2 replays, a clock gap declares a crash. Then delivery is attempted (deliver if all prior delivered, else park) and the train is forwarded, returning to Idle.</desc>
+  <rect x="0" y="0" width="860" height="380" rx="14" fill="#f8f9fb" stroke="#e2e6ee"/>
+  <text x="28" y="36" font-size="20" font-weight="700" fill="#1a2a3a">One TrainsNode — step(input) → Vec(output)</text>
+
+  <defs>
+    <marker id="sm" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#7a8694"/></marker>
+  </defs>
+
+  <!-- back edge Forward -> Idle (top) -->
+  <path d="M 778 198 L 778 64 L 91 64 L 91 186" fill="none" stroke="#9aa7b5" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#sm)"/>
+  <text x="430" y="56" font-size="11.5" fill="#7a8694" text-anchor="middle">ForwardTrain emitted → back to Idle</text>
+
+  <!-- Idle -->
+  <rect x="36" y="190" width="110" height="52" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+  <text x="91" y="221" font-size="14" font-weight="700" fill="#1f7a34" text-anchor="middle">Idle</text>
+  <text x="91" y="262" font-size="10.5" fill="#5b6b7d" text-anchor="middle">AppBroadcast / Tick</text>
+  <text x="91" y="275" font-size="10.5" fill="#8794a2" text-anchor="middle">(stay in Idle)</text>
+
+  <!-- CheckClock -->
+  <rect x="186" y="190" width="128" height="52" rx="10" fill="#fff3bf" stroke="#f59f00" stroke-width="2"/>
+  <text x="250" y="214" font-size="13" font-weight="700" fill="#7a5200" text-anchor="middle">CheckClock</text>
+  <text x="250" y="230" font-size="10" fill="#9a6b00" text-anchor="middle">classify train</text>
+
+  <!-- branches -->
+  <rect x="360" y="96" width="150" height="46" rx="9" fill="#dbeafe" stroke="#1971c2" stroke-width="1.8"/>
+  <text x="435" y="116" font-size="12.5" font-weight="700" fill="#1456a0" text-anchor="middle">LoadAndAck</text>
+  <text x="435" y="132" font-size="10" fill="#34536e" text-anchor="middle">load pending · add ack</text>
+
+  <rect x="360" y="190" width="150" height="46" rx="9" fill="#dbeafe" stroke="#1971c2" stroke-width="1.8"/>
+  <text x="435" y="210" font-size="12.5" font-weight="700" fill="#1456a0" text-anchor="middle">Replay</text>
+  <text x="435" y="226" font-size="10" fill="#34536e" text-anchor="middle">lap-2 propagation</text>
+
+  <rect x="360" y="284" width="150" height="46" rx="9" fill="#fdecec" stroke="#d64545" stroke-width="1.8"/>
+  <text x="435" y="304" font-size="12.5" font-weight="700" fill="#b02a2a" text-anchor="middle">DeclareCrash</text>
+  <text x="435" y="320" font-size="10" fill="#7a3030" text-anchor="middle">clock gap detected</text>
+
+  <!-- AttemptDeliver -->
+  <rect x="556" y="120" width="140" height="50" rx="10" fill="#fff3bf" stroke="#f59f00" stroke-width="2"/>
+  <text x="626" y="143" font-size="12.5" font-weight="700" fill="#7a5200" text-anchor="middle">AttemptDeliver</text>
+  <text x="626" y="159" font-size="10" fill="#9a6b00" text-anchor="middle">AllPriorDelivered?</text>
+
+  <rect x="556" y="200" width="140" height="44" rx="9" fill="#d3f9d8" stroke="#2f9e44" stroke-width="1.8"/>
+  <text x="626" y="227" font-size="12.5" font-weight="700" fill="#1f7a34" text-anchor="middle">Deliver → RecordKey</text>
+
+  <rect x="556" y="270" width="140" height="44" rx="9" fill="#eef1f4" stroke="#7a8694" stroke-width="1.6"/>
+  <text x="626" y="297" font-size="12.5" font-weight="700" fill="#3a4754" text-anchor="middle">Park (not yet)</text>
+
+  <!-- Forward -->
+  <rect x="724" y="198" width="106" height="48" rx="10" fill="#a5d8ff" stroke="#1971c2" stroke-width="2"/>
+  <text x="777" y="227" font-size="13" font-weight="700" fill="#0c4675" text-anchor="middle">Forward</text>
+
+  <!-- edges -->
+  <line x1="146" y1="216" x2="184" y2="216" stroke="#7a8694" stroke-width="1.8" marker-end="url(#sm)"/>
+  <text x="165" y="208" font-size="10" fill="#7a8694" text-anchor="middle">recv</text>
+
+  <path d="M 314 204 L 340 120 L 358 120" fill="none" stroke="#7a8694" stroke-width="1.6" marker-end="url(#sm)"/>
+  <text x="332" y="150" font-size="10.5" font-weight="600" fill="#1456a0">lap 1</text>
+  <line x1="314" y1="216" x2="358" y2="213" stroke="#7a8694" stroke-width="1.6" marker-end="url(#sm)"/>
+  <text x="336" y="205" font-size="10.5" font-weight="600" fill="#1456a0">lap 2</text>
+  <path d="M 314 228 L 340 307 L 358 307" fill="none" stroke="#7a8694" stroke-width="1.6" marker-end="url(#sm)"/>
+  <text x="330" y="285" font-size="10.5" font-weight="600" fill="#b02a2a">gap</text>
+
+  <!-- DeclareCrash -> LoadAndAck (left rail) -->
+  <path d="M 360 296 L 344 296 L 344 119 L 358 119" fill="none" stroke="#d64545" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#sm)"/>
+
+  <line x1="510" y1="119" x2="554" y2="138" stroke="#7a8694" stroke-width="1.6" marker-end="url(#sm)"/>
+  <line x1="510" y1="213" x2="554" y2="152" stroke="#7a8694" stroke-width="1.6" marker-end="url(#sm)"/>
+
+  <line x1="626" y1="170" x2="626" y2="198" stroke="#7a8694" stroke-width="1.6" marker-end="url(#sm)"/>
+  <text x="638" y="188" font-size="10.5" font-weight="600" fill="#1f7a34">yes</text>
+  <path d="M 556 150 L 536 150 L 536 292 L 554 292" fill="none" stroke="#7a8694" stroke-width="1.6" marker-end="url(#sm)"/>
+  <text x="520" y="232" font-size="10.5" font-weight="600" fill="#7a8694">no</text>
+
+  <line x1="696" y1="222" x2="722" y2="222" stroke="#7a8694" stroke-width="1.6" marker-end="url(#sm)"/>
+  <path d="M 696 292 L 777 292 L 777 248" fill="none" stroke="#7a8694" stroke-width="1.6" marker-end="url(#sm)"/>
+
+  <text x="28" y="366" font-size="12.5" fill="#34465a">The kernel is purely functional — no I/O, no allocation beyond returned outputs. That is what makes it verifiable.</text>
+</svg>

@@ -1,0 +1,38 @@
+# Bench sweep 2026-05-19T10:41:05Z
+# Host: Darwin node-a.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:31:09 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T8132 arm64
+# Rustc: rustc 1.95.0 (59807616e 2026-04-14)
+# Commit: 70b307efd44f50b322e0622adfc05c284552bd5e (clean: no)
+## kernel
+{"kind":"kernel","ring_size":3,"num_trains":2,"payload":64,"messages":5000,"wall_us":141326,"msgs_per_sec":35379.18368930193,"bytes_per_sec":2264267.7561153234,"steps":20011,"steps_per_sec":141594.5689613242}
+{"kind":"kernel","ring_size":3,"num_trains":2,"payload":1024,"messages":5000,"wall_us":136216,"msgs_per_sec":36706.194319318536,"bytes_per_sec":37587142.98298218,"steps":20011,"steps_per_sec":146905.53090477662}
+{"kind":"kernel","ring_size":3,"num_trains":2,"payload":16384,"messages":5000,"wall_us":142270,"msgs_per_sec":35144.21738874585,"bytes_per_sec":575802857.697212,"steps":20011,"steps_per_sec":140654.18683323864}
+## ring_tls (3 trials per cell, median for headline)
+{"kind":"ring_tls","ring_size":3,"num_trains":2,"payload":64,"messages":500,"wall_us":1234,"msgs_per_sec":404926.49774212984,"bytes_per_sec":25915295.85549631,"p50_us":1207,"p90_us":1215,"p99_us":1220,"max_us":1222}
+{"kind":"ring_tls","ring_size":3,"num_trains":2,"payload":64,"messages":500,"wall_us":1259,"msgs_per_sec":397074.98681711045,"bytes_per_sec":25412799.15629507,"p50_us":1229,"p90_us":1237,"p99_us":1243,"max_us":1244}
+{"kind":"ring_tls","ring_size":3,"num_trains":2,"payload":64,"messages":500,"wall_us":1222,"msgs_per_sec":408886.5773167718,"bytes_per_sec":26168740.948273394,"p50_us":1191,"p90_us":1207,"p99_us":1210,"max_us":1211}
+{"kind":"ring_tls","ring_size":3,"num_trains":2,"payload":1024,"messages":500,"wall_us":4168,"msgs_per_sec":119948.43177021336,"bytes_per_sec":122827194.13269848,"p50_us":4118,"p90_us":4141,"p99_us":4147,"max_us":4148}
+{"kind":"ring_tls","ring_size":3,"num_trains":2,"payload":1024,"messages":500,"wall_us":4703,"msgs_per_sec":106304.76555759614,"bytes_per_sec":108856079.93097845,"p50_us":4655,"p90_us":4680,"p99_us":4687,"max_us":4688}
+{"kind":"ring_tls","ring_size":3,"num_trains":2,"payload":1024,"messages":500,"wall_us":4287,"msgs_per_sec":116610.13407366774,"bytes_per_sec":119408777.29143576,"p50_us":4246,"p90_us":4268,"p99_us":4275,"max_us":4277}
+{"kind":"ring_tls","ring_size":3,"num_trains":2,"payload":16384,"messages":500,"wall_us":66500,"msgs_per_sec":7518.773362050636,"bytes_per_sec":123187582.76383762,"p50_us":65879,"p90_us":66119,"p99_us":66169,"max_us":66173}
+{"kind":"ring_tls","ring_size":3,"num_trains":2,"payload":16384,"messages":500,"wall_us":65090,"msgs_per_sec":7681.617480706619,"bytes_per_sec":125855620.80389725,"p50_us":31994,"p90_us":64697,"p99_us":64749,"max_us":64754}
+{"kind":"ring_tls","ring_size":3,"num_trains":2,"payload":16384,"messages":500,"wall_us":65339,"msgs_per_sec":7652.3828563666875,"bytes_per_sec":125376640.71871181,"p50_us":32823,"p90_us":64952,"p99_us":65002,"max_us":65014}
+## raft_baseline (3 trials per cell, hand-rolled Raft critical path)
+{"kind":"raft_baseline","nodes":3,"payload":64,"messages":500,"wall_us":2810,"msgs_per_sec":177925.36884818587,"bytes_per_sec":11387223.606283896,"p50_us":305,"p90_us":751,"p99_us":984,"max_us":984}
+{"kind":"raft_baseline","nodes":3,"payload":64,"messages":500,"wall_us":3418,"msgs_per_sec":146248.69180545182,"bytes_per_sec":9359916.275548916,"p50_us":425,"p90_us":729,"p99_us":823,"max_us":859}
+{"kind":"raft_baseline","nodes":3,"payload":64,"messages":500,"wall_us":4903,"msgs_per_sec":101978.38058331634,"bytes_per_sec":6526616.357332245,"p50_us":291,"p90_us":2024,"p99_us":2624,"max_us":2652}
+{"kind":"raft_baseline","nodes":3,"payload":1024,"messages":500,"wall_us":7182,"msgs_per_sec":69616.87189952559,"bytes_per_sec":71287676.8251142,"p50_us":407,"p90_us":3933,"p99_us":4284,"max_us":4322}
+{"kind":"raft_baseline","nodes":3,"payload":1024,"messages":500,"wall_us":3628,"msgs_per_sec":137805.88772899203,"bytes_per_sec":141113229.03448784,"p50_us":460,"p90_us":603,"p99_us":614,"max_us":1056}
+{"kind":"raft_baseline","nodes":3,"payload":1024,"messages":500,"wall_us":3446,"msgs_per_sec":145057.1626760958,"bytes_per_sec":148538534.5803221,"p50_us":524,"p90_us":671,"p99_us":759,"max_us":760}
+{"kind":"raft_baseline","nodes":3,"payload":16384,"messages":500,"wall_us":8943,"msgs_per_sec":55906.261747303244,"bytes_per_sec":915968192.4678164,"p50_us":1120,"p90_us":1948,"p99_us":2301,"max_us":2311}
+{"kind":"raft_baseline","nodes":3,"payload":16384,"messages":500,"wall_us":12683,"msgs_per_sec":39420.00246611535,"bytes_per_sec":645857320.4048339,"p50_us":1101,"p90_us":4752,"p99_us":5675,"max_us":5713}
+{"kind":"raft_baseline","nodes":3,"payload":16384,"messages":500,"wall_us":8366,"msgs_per_sec":59758.868186159394,"bytes_per_sec":979089296.3620355,"p50_us":627,"p90_us":2571,"p99_us":3075,"max_us":3168}
+## ring_tailscale (3 trials per cell, cross-host node-a<->node-b via WireGuard tunnel)
+{"kind": "ring_tailscale", "ring_size": 3, "num_trains": 2, "payload": 64, "messages": 200, "target_messages": 200, "wall_us": 54814, "msgs_per_sec": 3648.680719471011, "bytes_per_sec": 233515.5660461447, "p50_us": 40704, "p90_us": 40746, "p99_us": 40781, "max_us": 40791}
+{"kind": "ring_tailscale", "ring_size": 3, "num_trains": 2, "payload": 64, "messages": 200, "target_messages": 200, "wall_us": 78069, "msgs_per_sec": 2561.8103680493114, "bytes_per_sec": 163955.86355515593, "p50_us": 65210, "p90_us": 65261, "p99_us": 65287, "max_us": 65290}
+{"kind": "ring_tailscale", "ring_size": 3, "num_trains": 2, "payload": 64, "messages": 200, "target_messages": 200, "wall_us": 61030, "msgs_per_sec": 3277.076846825467, "bytes_per_sec": 209732.91819682988, "p50_us": 45749, "p90_us": 45777, "p99_us": 45795, "max_us": 45802}
+{"kind": "ring_tailscale", "ring_size": 3, "num_trains": 2, "payload": 1024, "messages": 200, "target_messages": 200, "wall_us": 180932, "msgs_per_sec": 1105.387152417166, "bytes_per_sec": 1131916.444075178, "p50_us": 165035, "p90_us": 165202, "p99_us": 165325, "max_us": 165371}
+{"kind": "ring_tailscale", "ring_size": 3, "num_trains": 2, "payload": 1024, "messages": 200, "target_messages": 200, "wall_us": 186487, "msgs_per_sec": 1072.4586583835737, "bytes_per_sec": 1098197.6661847795, "p50_us": 172023, "p90_us": 172108, "p99_us": 172198, "max_us": 172201}
+{"kind": "ring_tailscale", "ring_size": 3, "num_trains": 2, "payload": 1024, "messages": 200, "target_messages": 200, "wall_us": 203603, "msgs_per_sec": 982.3027936862579, "bytes_per_sec": 1005878.0607347281, "p50_us": 190219, "p90_us": 190282, "p99_us": 190327, "max_us": 190327}
+{"kind": "ring_tailscale", "ring_size": 3, "num_trains": 2, "payload": 16384, "messages": 200, "target_messages": 200, "wall_us": 1071590, "msgs_per_sec": 186.638415834674, "bytes_per_sec": 3057883.8050352987, "p50_us": 1037042, "p90_us": 1051349, "p99_us": 1051810, "max_us": 1051834}
+{"kind": "ring_tailscale", "ring_size": 3, "num_trains": 2, "payload": 16384, "messages": 200, "target_messages": 200, "wall_us": 830932, "msgs_per_sec": 240.6934256247218, "bytes_per_sec": 3943521.085435442, "p50_us": 811127, "p90_us": 814636, "p99_us": 815457, "max_us": 815573}
+{"kind": "ring_tailscale", "ring_size": 3, "num_trains": 2, "payload": 16384, "messages": 200, "target_messages": 200, "wall_us": 1016188, "msgs_per_sec": 196.81380589506756, "bytes_per_sec": 3224597.395784787, "p50_us": 998040, "p90_us": 999656, "p99_us": 1000357, "max_us": 1000523}

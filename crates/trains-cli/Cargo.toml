@@ -1,0 +1,29 @@
+[package]
+name        = "trains-cli"
+description = "CLI driver for a TRAINS ring node"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+
+[[bin]]
+name = "trains"
+path = "src/main.rs"
+
+[[bin]]
+name = "trains-trace-validate"
+path = "src/bin/trace_validate.rs"
+
+[dependencies]
+trains-core     = { path = "../trains-core" }
+trains-net      = { path = "../trains-net" }
+trains-recovery = { path = "../trains-recovery" }
+tokio          = { workspace = true }
+clap           = { workspace = true }
+anyhow         = { workspace = true }
+tracing        = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,11 @@
+# CDK build artefacts
+cdk.out/
+# cdk.context.json caches AWS-API lookups (AZ list, AMI IDs) for
+# reproducible synth. It contains the AWS account ID, which we keep
+# out of git history as a defensive default — `cdk synth` re-fetches
+# on first use per operator.
+cdk.context.json
+*.swp
+__pycache__/
+*.py[cod]
+.venv/

@@ -1,0 +1,17 @@
+[package]
+name        = "trains-recovery"
+description = "Failure detector + view-change state machine for the TRAINS protocol"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+
+[dependencies]
+# Recovery state machines live above the wire transport (trains-net) and the
+# protocol kernel (trains-core), and below any consumer (trains-cli driver,
+# trains-valkey proxy). Extracted from trains-cli in PR-RD-7 so trains-valkey
+# need not depend on the CLI to reach these primitives.
+trains-core = { path = "../trains-core" }
+trains-net  = { path = "../trains-net" }
+
+[lints]
+workspace = true

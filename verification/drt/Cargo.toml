@@ -1,0 +1,16 @@
+[package]
+name        = "trains-drt"
+description = "Differential random testing — trains-core vs trains-reference"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+
+[dependencies]
+trains-core      = { path = "../../crates/trains-core" }
+trains-reference = { path = "../reference" }
+
+[dev-dependencies]
+proptest = { workspace = true }
+
+[lints]
+workspace = true

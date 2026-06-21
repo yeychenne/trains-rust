@@ -1,0 +1,74 @@
+<svg viewBox="0 0 840 470" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif" role="img" aria-label="TRAINS two-lap uniform total-order broadcast">
+  <title>TRAINS two-lap uniform total-order broadcast</title>
+  <desc>A unidirectional ring of three nodes. A train circulates twice: lap 1 gathers payloads and acks, lap 2 propagates the frozen train so every node delivers the same messages in the same order.</desc>
+
+  <rect x="0" y="0" width="840" height="470" rx="14" fill="#f8f9fb" stroke="#e2e6ee"/>
+  <text x="28" y="42" font-size="22" font-weight="700" fill="#1a2a3a">TRAINS — uniform total-order broadcast on a ring</text>
+  <text x="28" y="66" font-size="14" fill="#5b6b7d">The right to order travels the ring as a circulating &#8220;train.&#8221; No leader; every node does equal work.</text>
+
+  <defs>
+    <marker id="ah" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#1971c2"/></marker>
+  </defs>
+
+  <!-- edges (clockwise N0 -> N1 -> N2 -> N0) -->
+  <path d="M 250 150 A 150 150 0 0 1 360 330" fill="none" stroke="#1971c2" stroke-width="3" marker-end="url(#ah)"/>
+  <path d="M 330 360 A 150 150 0 0 1 150 360" fill="none" stroke="#1971c2" stroke-width="3" marker-end="url(#ah)"/>
+  <path d="M 120 330 A 150 150 0 0 1 220 152" fill="none" stroke="#1971c2" stroke-width="3" marker-end="url(#ah)"/>
+
+  <!-- nodes -->
+  <circle cx="235" cy="135" r="40" fill="#e7f1ff" stroke="#1971c2" stroke-width="2.5"/>
+  <text x="235" y="131" font-size="16" font-weight="700" fill="#1456a0" text-anchor="middle">N0</text>
+  <text x="235" y="149" font-size="11" fill="#5b6b7d" text-anchor="middle">issuer</text>
+  <circle cx="375" cy="360" r="40" fill="#e7f1ff" stroke="#1971c2" stroke-width="2.5"/>
+  <text x="375" y="356" font-size="16" font-weight="700" fill="#1456a0" text-anchor="middle">N1</text>
+  <text x="375" y="374" font-size="11" fill="#5b6b7d" text-anchor="middle">issuer</text>
+  <circle cx="95" cy="360" r="40" fill="#ffffff" stroke="#9aa7b5" stroke-width="2.5"/>
+  <text x="95" y="356" font-size="16" font-weight="700" fill="#4a5765" text-anchor="middle">N2</text>
+  <text x="95" y="374" font-size="11" fill="#8794a2" text-anchor="middle">forwards</text>
+
+  <!-- the train riding the N0->N1 edge -->
+  <g transform="translate(300,250) rotate(58)">
+    <rect x="-58" y="-11" width="26" height="22" rx="4" fill="#1971c2"/>
+    <rect x="-30" y="-11" width="22" height="22" rx="4" fill="#4dabf7"/>
+    <rect x="-6" y="-11" width="22" height="22" rx="4" fill="#4dabf7"/>
+    <rect x="18" y="-11" width="22" height="22" rx="4" fill="#a5d8ff"/>
+  </g>
+  <text x="305" y="232" font-size="12" font-weight="600" fill="#1456a0" text-anchor="middle" transform="rotate(58 305 232)">train (clock,issuer)</text>
+
+  <!-- two laps -->
+  <g transform="translate(470,92)">
+    <rect x="0" y="0" width="345" height="148" rx="10" fill="#eaf2fe" stroke="#1971c2" stroke-width="1.5"/>
+    <text x="16" y="28" font-size="15" font-weight="700" fill="#1456a0">Lap 1 &#8212; gather</text>
+    <text x="16" y="50" font-size="12.5" fill="#34465a">Each node loads its pending messages into the</text>
+    <text x="16" y="68" font-size="12.5" fill="#34465a">train&#8217;s &#8220;cars&#8221; and adds its ack bit.</text>
+    <g font-size="12" font-weight="600">
+      <rect x="16" y="84" width="92" height="42" rx="6" fill="#fff" stroke="#86b7e8"/>
+      <text x="62" y="103" fill="#1456a0" text-anchor="middle">acks 001</text>
+      <text x="62" y="119" fill="#5b6b7d" text-anchor="middle">msgs &#8709;</text>
+      <text x="118" y="110" fill="#1971c2" text-anchor="middle">&#8594;</text>
+      <rect x="128" y="84" width="92" height="42" rx="6" fill="#fff" stroke="#86b7e8"/>
+      <text x="174" y="103" fill="#1456a0" text-anchor="middle">acks 011</text>
+      <text x="174" y="119" fill="#5b6b7d" text-anchor="middle">+m1,m2</text>
+      <text x="230" y="110" fill="#1971c2" text-anchor="middle">&#8594;</text>
+      <rect x="240" y="84" width="92" height="42" rx="6" fill="#d7ebff" stroke="#1971c2" stroke-width="1.8"/>
+      <text x="286" y="103" fill="#0d3a73" text-anchor="middle">acks 111</text>
+      <text x="286" y="119" fill="#1456a0" text-anchor="middle">FULL_ACK</text>
+    </g>
+
+    <rect x="0" y="166" width="345" height="142" rx="10" fill="#fff6e6" stroke="#c98a00" stroke-width="1.5"/>
+    <text x="16" y="194" font-size="15" font-weight="700" fill="#9a6b00">Lap 2 &#8212; propagate &amp; deliver</text>
+    <text x="16" y="216" font-size="12.5" fill="#5c4a23">The train is now frozen. It rides the ring once</text>
+    <text x="16" y="234" font-size="12.5" fill="#5c4a23">more so every node delivers the identical batch,</text>
+    <text x="16" y="252" font-size="12.5" fill="#5c4a23">in (clock, issuer) order.</text>
+    <g font-size="12" font-weight="700">
+      <rect x="16" y="266" width="100" height="30" rx="6" fill="#fff" stroke="#e0b25a"/>
+      <text x="66" y="286" fill="#9a6b00" text-anchor="middle">N0 deliver</text>
+      <rect x="124" y="266" width="100" height="30" rx="6" fill="#fff" stroke="#e0b25a"/>
+      <text x="174" y="286" fill="#9a6b00" text-anchor="middle">N1 deliver</text>
+      <rect x="232" y="266" width="100" height="30" rx="6" fill="#fff" stroke="#e0b25a"/>
+      <text x="282" y="286" fill="#9a6b00" text-anchor="middle">N2 deliver</text>
+    </g>
+  </g>
+
+  <text x="28" y="445" font-size="13" fill="#34465a"><tspan font-weight="700" fill="#1a2a3a">Why two laps:</tspan> a message is delivered only after the train has closed the ring &#8212; so if any node delivers it, all do. That is uniform total order.</text>
+</svg>

@@ -1,0 +1,12 @@
+[package]
+name        = "trains-reference"
+description = "Reference implementation of TRAINS, line-by-line mirror of TRAINS.tla"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+
+[dependencies]
+trains-core = { path = "../../crates/trains-core" }
+
+[lints]
+workspace = true

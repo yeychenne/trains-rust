@@ -1,0 +1,43 @@
+# Rust
+target/
+target-podman-*/
+Cargo.lock.bak
+**/*.rs.bk
+
+# CDK (synth output + transient deploy outputs)
+scripts/bench-aws/cdk.out/
+scripts/bench-aws/cdk-outputs.json
+
+# Compiled binaries staged for upload (regenerable via build-linux.sh)
+scripts/bench-aws/dist/
+
+# Chaos-ring TLS keypairs — NEVER commit (PR-RD-4 keygen output)
+bench/identities-*/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Tooling temp
+/tmp/
+
+# TLC scratch state (regenerated on every run)
+verification/tla/states/
+
+# Apalache scratch output (regenerated on every run)
+verification/tla/_apalache-out/
+_apalache-out/
+
+# Background-agent worktrees
+.claude/
+
+# Word-doc build intermediates (regenerable from sources)
+docs/build/*-imgs/
+docs/build/*-noimg.md
+
+# Python bytecode (integrations/)
+__pycache__/
+*.pyc

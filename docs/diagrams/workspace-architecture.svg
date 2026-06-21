@@ -1,0 +1,52 @@
+<svg viewBox="0 0 820 360" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif" role="img" aria-label="Workspace architecture">
+  <title>Workspace architecture — the pure/impure split</title>
+  <desc>The impure I/O crates (cli, ao adapter, TLS transport) and the test crates (reference, differential harness) all depend on a single pure protocol kernel, trains-core, which is the only crate the verification stack targets.</desc>
+  <rect x="0" y="0" width="820" height="360" rx="14" fill="#f8f9fb" stroke="#e2e6ee"/>
+  <text x="28" y="38" font-size="20" font-weight="700" fill="#1a2a3a">Workspace architecture — the pure / impure split</text>
+
+  <defs>
+    <marker id="wa" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#7a8694"/></marker>
+  </defs>
+
+  <!-- legend -->
+  <g font-size="11.5">
+    <rect x="540" y="58" width="252" height="64" rx="8" fill="#fff" stroke="#e2e6ee"/>
+    <rect x="554" y="70" width="14" height="14" rx="3" fill="#a5d8ff" stroke="#1971c2"/><text x="576" y="81" fill="#34465a">impure — I/O, async, sockets</text>
+    <rect x="554" y="90" width="14" height="14" rx="3" fill="#d3f9d8" stroke="#2f9e44"/><text x="576" y="101" fill="#34465a">pure — no I/O, deterministic</text>
+    <rect x="554" y="108" width="14" height="14" rx="3" fill="#fff3bf" stroke="#f59f00"/><text x="576" y="119" fill="#34465a">test / verification</text>
+  </g>
+
+  <!-- impure row -->
+  <rect x="60" y="72" width="150" height="50" rx="9" fill="#a5d8ff" stroke="#1971c2" stroke-width="1.8"/>
+  <text x="135" y="95" font-size="13" font-weight="700" fill="#0c4675" text-anchor="middle">trains-cli</text>
+  <text x="135" y="111" font-size="10.5" fill="#0c4675" text-anchor="middle">I/O + binary</text>
+  <rect x="225" y="72" width="140" height="50" rx="9" fill="#a5d8ff" stroke="#1971c2" stroke-width="1.8"/>
+  <text x="295" y="95" font-size="13" font-weight="700" fill="#0c4675" text-anchor="middle">trains-net</text>
+  <text x="295" y="111" font-size="10.5" fill="#0c4675" text-anchor="middle">TLS ring transport</text>
+  <rect x="380" y="72" width="120" height="50" rx="9" fill="#a5d8ff" stroke="#1971c2" stroke-width="1.8"/>
+  <text x="440" y="95" font-size="13" font-weight="700" fill="#0c4675" text-anchor="middle">trains-ao</text>
+  <text x="440" y="111" font-size="10.5" fill="#0c4675" text-anchor="middle">AO adapter</text>
+
+  <!-- pure kernel (center) -->
+  <rect x="210" y="200" width="240" height="64" rx="10" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2.6"/>
+  <text x="330" y="228" font-size="15" font-weight="700" fill="#1f7a34" text-anchor="middle">trains-core</text>
+  <text x="330" y="247" font-size="11.5" fill="#2b6e3c" text-anchor="middle">pure kernel · step(input) → Vec(output)</text>
+
+  <!-- test crates -->
+  <rect x="560" y="156" width="200" height="46" rx="9" fill="#fff3bf" stroke="#f59f00" stroke-width="1.8"/>
+  <text x="660" y="176" font-size="12.5" font-weight="700" fill="#7a5200" text-anchor="middle">trains-reference</text>
+  <text x="660" y="192" font-size="10.5" fill="#9a6b00" text-anchor="middle">clarity-first reference</text>
+  <rect x="560" y="214" width="200" height="46" rx="9" fill="#fff3bf" stroke="#f59f00" stroke-width="1.8"/>
+  <text x="660" y="234" font-size="12.5" font-weight="700" fill="#7a5200" text-anchor="middle">trains-drt</text>
+  <text x="660" y="250" font-size="10.5" fill="#9a6b00" text-anchor="middle">differential harness</text>
+
+  <!-- arrows into core -->
+  <line x1="135" y1="122" x2="270" y2="196" stroke="#7a8694" stroke-width="1.6" marker-end="url(#wa)"/>
+  <line x1="295" y1="122" x2="315" y2="196" stroke="#7a8694" stroke-width="1.6" marker-end="url(#wa)"/>
+  <line x1="440" y1="122" x2="380" y2="196" stroke="#7a8694" stroke-width="1.6" marker-end="url(#wa)"/>
+  <line x1="558" y1="184" x2="452" y2="216" stroke="#7a8694" stroke-width="1.6" marker-end="url(#wa)"/>
+  <line x1="558" y1="236" x2="452" y2="238" stroke="#7a8694" stroke-width="1.6" marker-end="url(#wa)"/>
+
+  <text x="28" y="320" font-size="13" fill="#34465a"><tspan font-weight="700" fill="#1a2a3a">The key decision:</tspan> trains-core has zero tokio, zero syscalls, zero non-determinism —</text>
+  <text x="28" y="338" font-size="13" fill="#34465a">it is the only crate the verification stack targets, which is what makes the proofs tractable.</text>
+</svg>

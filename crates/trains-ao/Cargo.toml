@@ -1,0 +1,18 @@
+[package]
+name        = "trains-ao"
+description = "AgentOrchestrator adapter for the TRAINS ring protocol"
+version.workspace      = true
+edition.workspace      = true
+rust-version.workspace = true
+
+[dependencies]
+trains-core = { path = "../trains-core" }
+trains-net  = { path = "../trains-net" }
+tokio       = { workspace = true }
+serde       = { workspace = true }
+serde_json  = { workspace = true }
+thiserror   = { workspace = true }
+tracing     = { workspace = true }
+
+[lints]
+workspace = true

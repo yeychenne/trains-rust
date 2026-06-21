@@ -1,0 +1,49 @@
+<svg viewBox="0 0 860 380" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif" role="img" aria-label="Rejoin and re-admission lifecycle">
+  <title>Group membership: exclude, catch up, re-admit</title>
+  <desc>A node crashes and is excluded by a view change; the ring runs degraded; the recovered node catches up passively (v2) from a snapshot plus delivered-effect tail; then a virtually-synchronous re-admit view change (v3) returns it as a full acking member.</desc>
+  <rect x="0" y="0" width="860" height="380" rx="14" fill="#f8f9fb" stroke="#e2e6ee"/>
+  <text x="28" y="40" font-size="21" font-weight="700" fill="#1a2a3a">Group membership: from crash to full re-admission</text>
+  <text x="28" y="64" font-size="14" fill="#5b6b7d">The node lifecycle the original protocol lacked — exclude the dead, catch up, re-admit the living. All TLC-verified.</text>
+
+  <defs>
+    <marker id="rj" markerWidth="11" markerHeight="11" refX="7" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 Z" fill="#495965"/></marker>
+  </defs>
+
+  <!-- Phase 1: exclude -->
+  <rect x="24" y="92" width="252" height="232" rx="11" fill="#fdecec" stroke="#d64545" stroke-width="1.6"/>
+  <text x="40" y="118" font-size="14" font-weight="700" fill="#b02a2a">1 · Crash → exclude</text>
+  <circle cx="90" cy="180" r="26" fill="#e7f1ff" stroke="#1971c2" stroke-width="2"/><text x="90" y="185" font-size="12" font-weight="700" fill="#1456a0" text-anchor="middle">N0</text>
+  <circle cx="200" cy="180" r="26" fill="#e7f1ff" stroke="#1971c2" stroke-width="2"/><text x="200" y="185" font-size="12" font-weight="700" fill="#1456a0" text-anchor="middle">N1</text>
+  <circle cx="145" cy="260" r="26" fill="#fbe0e0" stroke="#d64545" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="145" y="265" font-size="12" font-weight="700" fill="#b02a2a" text-anchor="middle">N2 ✕</text>
+  <text x="150" y="300" font-size="11.5" fill="#7a3030" text-anchor="middle">Reconfigure view change</text>
+  <text x="150" y="316" font-size="11.5" fill="#7a3030" text-anchor="middle">survivors adopt newest log</text>
+
+  <!-- arrow -->
+  <line x1="282" y1="208" x2="306" y2="208" stroke="#495965" stroke-width="2" marker-end="url(#rj)"/>
+
+  <!-- Phase 2: v2 passive catch-up -->
+  <rect x="312" y="92" width="252" height="232" rx="11" fill="#eaf2fe" stroke="#1971c2" stroke-width="1.6"/>
+  <text x="328" y="118" font-size="14" font-weight="700" fill="#1456a0">2 · v2 passive catch-up</text>
+  <circle cx="378" cy="178" r="26" fill="#e7f1ff" stroke="#1971c2" stroke-width="2"/><text x="378" y="183" font-size="12" font-weight="700" fill="#1456a0" text-anchor="middle">N0</text>
+  <circle cx="488" cy="178" r="26" fill="#e7f1ff" stroke="#1971c2" stroke-width="2"/><text x="488" y="183" font-size="12" font-weight="700" fill="#1456a0" text-anchor="middle">N1</text>
+  <circle cx="433" cy="258" r="26" fill="#fff" stroke="#9aa7b5" stroke-width="2" stroke-dasharray="3 3"/>
+  <text x="433" y="263" font-size="11" font-weight="700" fill="#6b7785" text-anchor="middle">N2 read</text>
+  <line x1="410" y1="200" x2="428" y2="236" stroke="#1971c2" stroke-width="1.6" marker-end="url(#rj)"/>
+  <text x="438" y="300" font-size="11.5" fill="#34536e" text-anchor="middle">snapshot + delivered-effect</text>
+  <text x="438" y="316" font-size="11.5" fill="#34536e" text-anchor="middle">tail; polls to stay current</text>
+
+  <!-- arrow -->
+  <line x1="570" y1="208" x2="594" y2="208" stroke="#495965" stroke-width="2" marker-end="url(#rj)"/>
+
+  <!-- Phase 3: v3 re-admit -->
+  <rect x="600" y="92" width="236" height="232" rx="11" fill="#e8f8ee" stroke="#2f9e44" stroke-width="1.6"/>
+  <text x="616" y="118" font-size="14" font-weight="700" fill="#1f7a34">3 · v3 re-admit</text>
+  <circle cx="660" cy="178" r="26" fill="#e7f1ff" stroke="#1971c2" stroke-width="2"/><text x="660" y="183" font-size="12" font-weight="700" fill="#1456a0" text-anchor="middle">N0</text>
+  <circle cx="770" cy="178" r="26" fill="#e7f1ff" stroke="#1971c2" stroke-width="2"/><text x="770" y="183" font-size="12" font-weight="700" fill="#1456a0" text-anchor="middle">N1</text>
+  <circle cx="715" cy="258" r="26" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2.4"/><text x="715" y="263" font-size="12" font-weight="700" fill="#1f7a34" text-anchor="middle">N2 ✓</text>
+  <text x="718" y="300" font-size="11.5" fill="#235e30" text-anchor="middle">virtually-synchronous</text>
+  <text x="718" y="316" font-size="11.5" fill="#235e30" text-anchor="middle">re-admit → full acking, N-redundancy</text>
+
+  <text x="28" y="360" font-size="13" fill="#34465a"><tspan font-weight="700" fill="#1a2a3a">Verified:</tspan> TLC checks ConsistentDelivery survives the membership change (6.28 M states) — order holds as the view shrinks and grows.</text>
+</svg>

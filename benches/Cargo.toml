@@ -1,0 +1,47 @@
+[package]
+name        = "trains-benches"
+version     = { workspace = true }
+edition     = { workspace = true }
+authors     = { workspace = true }
+license     = { workspace = true }
+publish     = false
+
+# Standalone bench binaries. We deliberately do NOT use criterion's
+# `[[bench]]` mechanism: criterion's async support is flaky for the
+# network bench (rebuilds the runtime each iteration). Plain
+# `#[tokio::main]` binaries with manual `Instant`s are easier to
+# reason about and reproduce.
+
+[[bin]]
+name = "bench_kernel"
+path = "src/bin/bench_kernel.rs"
+
+[[bin]]
+name = "bench_ring_tls"
+path = "src/bin/bench_ring_tls.rs"
+
+[[bin]]
+name = "bench_raft_baseline"
+path = "src/bin/bench_raft_baseline.rs"
+
+[[bin]]
+name = "bench_raft_openraft"
+path = "src/bin/bench_raft_openraft.rs"
+
+[dependencies]
+trains-core    = { path = "../crates/trains-core" }
+trains-net     = { path = "../crates/trains-net" }
+tokio          = { workspace = true }
+tokio-rustls   = { workspace = true }
+rustls         = { workspace = true }
+anyhow         = { workspace = true }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+clap           = { workspace = true }
+# Real Raft library baseline (PR-CORE-4). openraft-memstore provides the
+# RaftLogStorage + RaftStateMachine; we add only an in-process network.
+openraft          = "0.9"
+openraft-memstore = "0.9"
+
+[lints]
+workspace = true

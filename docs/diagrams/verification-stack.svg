@@ -1,0 +1,55 @@
+<svg viewBox="0 0 840 360" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, sans-serif" role="img" aria-label="Verification stack">
+  <title>The four-layer verification stack</title>
+  <desc>A TLA+ spec checked by TLC; a production kernel and a reference implementation linked by differential random testing; PropTest fuzzing and Kani bounded model checking on the kernel. Each layer catches a different bug class.</desc>
+  <rect x="0" y="0" width="840" height="360" rx="14" fill="#f8f9fb" stroke="#e2e6ee"/>
+  <text x="28" y="38" font-size="20" font-weight="700" fill="#1a2a3a">Verification stack — four layers, four bug classes</text>
+
+  <defs>
+    <marker id="vs" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#7a8694"/></marker>
+    <marker id="vsd" markerWidth="10" markerHeight="10" refX="1" refY="3" orient="auto"><path d="M7,0 L0,3 L7,6 Z" fill="#2f9e44"/></marker>
+    <marker id="vsd2" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#2f9e44"/></marker>
+  </defs>
+
+  <!-- spec -->
+  <rect x="300" y="64" width="240" height="56" rx="9" fill="#fff3bf" stroke="#f59f00" stroke-width="2"/>
+  <text x="420" y="88" font-size="14" font-weight="700" fill="#7a5200" text-anchor="middle">TLA+ specification</text>
+  <text x="420" y="106" font-size="11.5" fill="#9a6b00" text-anchor="middle">verification/tla/TRAINS.tla</text>
+  <!-- TLC badge -->
+  <rect x="566" y="68" width="246" height="48" rx="9" fill="#eef1f4" stroke="#7a8694" stroke-width="1.4"/>
+  <text x="689" y="88" font-size="13" font-weight="700" fill="#3a4754" text-anchor="middle">TLC model checker</text>
+  <text x="689" y="105" font-size="11" fill="#5b6b7d" text-anchor="middle">6.28M states · 6 invariants + liveness</text>
+  <line x1="540" y1="92" x2="562" y2="92" stroke="#7a8694" stroke-width="1.8" marker-end="url(#vs)"/>
+
+  <!-- impls -->
+  <rect x="120" y="170" width="240" height="58" rx="9" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+  <text x="240" y="194" font-size="14" font-weight="700" fill="#1f7a34" text-anchor="middle">trains-core</text>
+  <text x="240" y="212" font-size="11.5" fill="#2b6e3c" text-anchor="middle">production kernel (pure)</text>
+
+  <rect x="480" y="170" width="240" height="58" rx="9" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+  <text x="600" y="194" font-size="14" font-weight="700" fill="#1f7a34" text-anchor="middle">trains-reference</text>
+  <text x="600" y="212" font-size="11.5" fill="#2b6e3c" text-anchor="middle">clarity-first reference</text>
+
+  <!-- DRT double arrow -->
+  <line x1="362" y1="199" x2="478" y2="199" stroke="#2f9e44" stroke-width="2" marker-start="url(#vsd)" marker-end="url(#vsd2)"/>
+  <text x="420" y="192" font-size="12" font-weight="700" fill="#1f7a34" text-anchor="middle">DRT</text>
+  <text x="420" y="218" font-size="11" fill="#2b6e3c" text-anchor="middle">384 cases</text>
+
+  <!-- spec derived-from -->
+  <line x1="380" y1="122" x2="270" y2="166" stroke="#c9a23a" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#vs)"/>
+  <line x1="460" y1="122" x2="570" y2="166" stroke="#c9a23a" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#vs)"/>
+  <text x="420" y="146" font-size="10.5" fill="#9a6b00" text-anchor="middle">derived from</text>
+
+  <!-- tools on kernel -->
+  <rect x="120" y="262" width="158" height="46" rx="9" fill="#eef1f4" stroke="#7a8694" stroke-width="1.4"/>
+  <text x="199" y="282" font-size="12.5" font-weight="700" fill="#3a4754" text-anchor="middle">PropTest fuzz</text>
+  <text x="199" y="298" font-size="10.5" fill="#5b6b7d" text-anchor="middle">256 schedules + crash</text>
+  <rect x="290" y="262" width="150" height="46" rx="9" fill="#eef1f4" stroke="#7a8694" stroke-width="1.4"/>
+  <text x="365" y="282" font-size="12.5" font-weight="700" fill="#3a4754" text-anchor="middle">Kani / CBMC</text>
+  <text x="365" y="298" font-size="10.5" fill="#5b6b7d" text-anchor="middle">8 leaf harnesses</text>
+  <line x1="200" y1="228" x2="200" y2="258" stroke="#7a8694" stroke-width="1.6" marker-end="url(#vs)"/>
+  <line x1="300" y1="228" x2="330" y2="258" stroke="#7a8694" stroke-width="1.6" marker-end="url(#vs)"/>
+
+  <text x="470" y="284" font-size="13" fill="#34465a"><tspan font-weight="700" fill="#1a2a3a">Complementary:</tspan> TLC finds</text>
+  <text x="470" y="302" font-size="13" fill="#34465a">spec races; DRT finds impl drift;</text>
+  <text x="470" y="320" font-size="13" fill="#34465a">Kani finds arithmetic/overflow.</text>
+</svg>

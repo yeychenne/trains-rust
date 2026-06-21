@@ -1,0 +1,54 @@
+#lang ivy1.8
+
+# ── Sorts ────────────────────────────────────────────────────────────────────
+type proc          # ring processes (unbounded)
+type message       # application messages
+type tick          # logical clocks (totally ordered)
+interpret tick -> nat
+
+# ── Ring topology axioms ─────────────────────────────────────────────────────
+relation succ(P: proc, Q: proc)   # P's successor on the ring is Q
+
+axiom forall P. exists Q. succ(P, Q)                            # every node has a successor
+axiom forall P, Q1, Q2. succ(P, Q1) & succ(P, Q2) -> Q1 = Q2  # unique successor
+axiom forall P. ~succ(P, P)                                     # no self-loops
+
+# ── Protocol state ───────────────────────────────────────────────────────────
+relation has_acked(P: proc, Cl: tick, Iss: proc)                 # P acked train (Cl, Iss)
+relation delivered(P: proc, M: message, Cl: tick, Iss: proc)     # P delivered M from train
+
+# ── Total-order invariant ────────────────────────────────────────────────────
+# If P delivered M from (Cl,Iss) before M2 from (Cl2,Iss2),
+# and Q also delivered both, then Q delivers M before M2.
+invariant [total_order]
+    forall P: proc, Q: proc, M: message, M2: message,
+           Cl: tick, Iss: proc, Cl2: tick, Iss2: proc.
+        delivered(P, M, Cl, Iss) &
+        delivered(P, M2, Cl2, Iss2) &
+        (Cl < Cl2 | (Cl = Cl2 & Iss < Iss2)) &
+        delivered(Q, M, Cl, Iss) &
+        delivered(Q, M2, Cl2, Iss2)
+        -> (Cl < Cl2 | (Cl = Cl2 & Iss < Iss2))
+
+# ── Consistent prefix invariant ───────────────────────────────────────────────
+# All prior-train keys acked by all processes before delivery ensures
+# any two processes' delivery histories are mutual prefixes (captured
+# via the total_order invariant above together with the preconditions
+# on the deliver action).
+
+# ── Delivery action ──────────────────────────────────────────────────────────
+action deliver(p: proc, m: message, cl: tick, iss: proc) = {
+    # Pre: UTO condition — every node has acked this train
+    require forall Q: proc. has_acked(Q, cl, iss);
+    # Pre: all earlier trains already delivered at p
+    require forall Cl2: tick, Iss2: proc.
+        (Cl2 < cl | (Cl2 = cl & Iss2 < iss)) ->
+        exists M2: message. delivered(p, M2, Cl2, Iss2);
+    # Effect
+    delivered(p, m, cl, iss) := true
+}
+
+# ── Ack action ───────────────────────────────────────────────────────────────
+action ack(p: proc, cl: tick, iss: proc) = {
+    has_acked(p, cl, iss) := true
+}

@@ -1,0 +1,12 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc d2056268284185108bb145b73be6420f668fcee298556fcd25458f513b1c057c # shrinks to events = [Receive(Train { issuer: 0, clock: 2, payloads: [], ack_bits: 0 })]
+cc 0c39e21d846b38add73acaff7f36b3dbe1bdb469b7aba1de09c324ed2ae2778b # shrinks to events = [Receive(Train { issuer: 0, clock: 2, payloads: [], ack_bits: 0 })]
+cc 5c1c2d196334f2d5d29e0867af225c904888a188c4b20175eb950321b17b4a2a # shrinks to events = [Receive(Train { issuer: 1, clock: 2, payloads: [], ack_bits: 0 })]
+cc efeca0e3415e156eef8f8f6d46d583ce4702810587108391e218fdd990094179 # shrinks to events = [Broadcast([]), Broadcast([]), Receive(Train { issuer: 2, clock: 1, payloads: [Payload { sender: 0, seq: 2, data: [] }], ack_bits: 0 }), Broadcast([]), Receive(Train { issuer: 1, clock: 1, payloads: [], ack_bits: 0 })]
+cc c39254325c3b33965c2c19c105de00364ca65386e65da8998a30e71c7181cab4 # shrinks to events = [Receive(Train { issuer: 2, clock: 1, payloads: [Payload { sender: 1, seq: 0, data: [] }], ack_bits: 0 }), Broadcast([]), Broadcast([]), Receive(Train { issuer: 2, clock: 2, payloads: [], ack_bits: 0 })]
+cc 75504851a91581ee41003564d3be1063f0edaca0c8c79c100a4113151f47453a # shrinks to events = [Receive(Train { issuer: 0, clock: 1, payloads: [Payload { sender: 2, seq: 0, data: [] }], ack_bits: 0 }), Broadcast([]), Broadcast([]), Receive(Train { issuer: 0, clock: 2, payloads: [], ack_bits: 0 })]
