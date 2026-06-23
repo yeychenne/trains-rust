@@ -1,21 +1,43 @@
 # trains-rust
 
-**TRAINS** is a uniform total-order broadcast protocol: a group of machines
-agree on one order for a stream of operations and apply them identically, so the
-group behaves like a single machine that doesn't lose state when nodes fail.
-Unlike Paxos and Raft there is no leader — the right to order travels a logical
-ring as a circulating "train," so every node does equal work. This is a Rust
-implementation, formally verified in TLA+, Apalache (inductive invariants), and
-Ivy, and extended with online node rejoin.
+**TRAINS is a control-plane total-order broadcast primitive** — the same family
+as etcd and ZooKeeper, not a data-plane replication engine. A small group of
+nodes agree on one order for a stream of small, order-critical messages (config,
+membership, leases, locks, coordination events) and apply them identically, so
+the group behaves like a single consistent machine. It is **consistency-first**:
+under a partition it halts rather than diverge (the CP corner of CAP) — the
+correct stance for a control plane, where split-brain is catastrophic. Unlike
+Paxos and Raft there is no leader: the right to order travels a logical ring as
+a circulating "train," so every node does equal work.
 
-It also has a thirty-year history: invented for power-plant control supervision
-at Cegelec/Alcatel in the early 1990s — advised by Flaviu Cristian, patented,
-now public domain — and revived academically by Michel Simatic. See
-[History](#history) below.
+What makes this implementation unusual is not speed — it is **how little code it
+is and how thoroughly it is checked**: a **~2,360-line protocol kernel**
+checked six independent ways (TLA+/TLC, Apalache symbolic checking, Kani/CBMC
+bounded model checking of the Rust, PropTest fuzzing with crash injection,
+differential random testing against a reference impl, and runtime trace
+validation; an Ivy spec is in-tree too, not yet run), with the spec, the
+reference implementation, and the tests all in this repo. To our knowledge it is the
+smallest and most-verified total-order-broadcast core in open source, and the
+only ring-based one that ships a machine-checked spec.
+
+| | trains-rust kernel | etcd raft | typical Raft impls | larger frameworks |
+|---|---|---|---|---|
+| Core LOC | **~2,360** | ~6,150 | ~11k | up to ~50k |
+| In-repo formal verification | **6 methods** | TLA+ + traces | none | none |
+
+It also has a thirty-year control-plane pedigree: invented for **power-plant
+control supervision** at Cegelec/Alcatel in the early 1990s — advised by Flaviu
+Cristian, patented, now public domain — and revived academically by Michel
+Simatic. The modern incarnation is the `trains-ao` adapter (ordered control
+events for an agent-orchestrator control plane). See [History](#history) below.
+
+> **Not** for bulk data-plane throughput. TRAINS optimises small-message,
+> totally-ordered, consistency-first coordination on small clusters — see
+> [`docs/paper-benchmarks.md`](docs/paper-benchmarks.md) for the honest envelope.
 
 Companion repo: **[trains-valkey](https://github.com/yeychenne/trains-valkey)**
-— uses this protocol to give Valkey/Redis the durability its native
-Sentinel HA story sacrifices.
+— control-plane-grade HA: it uses this protocol to give Valkey/Redis the
+loss-free failover its native Sentinel story sacrifices.
 
 ## What's here
 

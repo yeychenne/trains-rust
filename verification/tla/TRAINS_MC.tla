@@ -46,4 +46,33 @@ ConstInit ==
   /\ MaxPending = 2
   /\ Mode       = "UTO"
 
+(*--------------------------------------------------------------------*)
+(* TO-mode ConstInit: identical to ConstInit but Mode = "TO", which   *)
+(* enables the membership view-change actions (Reconfigure exclude +   *)
+(* ReAdmit re-admit) in Next.  Used to extend the Apalache bounded     *)
+(* symbolic check to dynamic membership — previously TLC-only.         *)
+(* Run:                                                                *)
+(*   apalache-mc check --init=Init --inv=ConsistentDelivery \          *)
+(*     --cinit=ConstInitTO --length=N TRAINS_MC.tla                    *)
+(*--------------------------------------------------------------------*)
+ConstInitTO ==
+  /\ Procs      = {0, 1, 2}
+  /\ ring       = <<0, 1, 2>>
+  /\ NumTrains  = 2
+  /\ Messages   = {"m1", "m2", "m3"}
+  /\ MaxClock   = 4
+  /\ MaxPending = 2
+  /\ Mode       = "TO"
+
+(* The four non-ConsistentDelivery safety invariants, conjoined so a       *)
+(* single Apalache run amortises the (dominant) symbolic exploration cost   *)
+(* across all of them.  ConsistentDelivery is checked on its own (it is the *)
+(* most expensive checker).                                                 *)
+\* @type: () => Bool;
+OtherSafetyTO ==
+  /\ ClockMonotonicity
+  /\ NoSpuriousDelivery
+  /\ TrainIntegrity
+  /\ IssuerUniqueness
+
 =============================================================================

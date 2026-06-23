@@ -20,13 +20,24 @@ harness documented in the EC2 report.
 
 ## 1. What we are measuring, and why it is interesting
 
-TRAINS is a leaderless, ring-based *uniform total-order broadcast*: the right
-to order travels the ring as a circulating "train," so every node forwards,
-acks, and delivers the same volume (§2 of the protocol paper). That symmetry is
-the thesis — it should trade single-message latency for aggregate throughput,
-and it should degrade *latency, not correctness* under stress. A benchmark
-study is how you find out whether the thesis survives contact with real
-hardware, a real lossy link, and real faults.
+**Read these numbers on the right axis.** TRAINS is a *control-plane* total-order
+broadcast primitive — the etcd/ZooKeeper family — not a data-plane replication
+engine. The workloads here are deliberately control-plane-shaped: **small
+messages** (64 B–256 B: config, membership, leases, locks, coordination events),
+**small clusters** (rings of 3–12, with 3–5 being the realistic range), and
+**modest rates** where *order and agreement* matter more than raw bandwidth. We
+do *not* try to push bulk data at line rate — that is a data-plane job TRAINS is
+not for, and the one place it loses (bandwidth-bound 16 KB payloads, §3) is
+exactly that job. Judge the protocol on the small-message, small-cluster,
+consistency-first axis; that is what a control plane asks of it.
+
+TRAINS is leaderless and ring-based: the right to order travels the ring as a
+circulating "train," so every node forwards, acks, and delivers the same volume
+(§2 of the protocol paper). That symmetry is the thesis — it should trade
+single-message latency for small-message throughput, and it should degrade
+*latency, not correctness* under stress. A benchmark study is how you find out
+whether the thesis survives contact with real hardware, a real lossy link, and
+real faults.
 
 We ask four questions:
 
@@ -240,7 +251,58 @@ trade: correct when healthy, silent when not.
 
 ---
 
-## 8. Conclusion
+## 8. How this sits among other systems (published numbers — mind the caveats)
+
+It is tempting to put TRAINS in a table next to etcd, ZooKeeper and friends and
+declare a winner. **Don't** — the numbers below come from different hardware,
+years, workloads, and even different *units*, and a ranking built from them
+would be dishonest. They are useful only as a map of *regimes*. Every figure is
+a published number under that project's own conditions, not something we
+re-measured.
+
+| System (family) | Published figure | Conditions | Unit being counted |
+|---|---|---|---|
+| **etcd** (Raft) | >30,000 req/s, <1 ms light load | 3-node cloud cluster | durable replicated KV ops via a leader |
+| **ZooKeeper / ZAB** (atomic broadcast) | ~21,000 writes/s, ~1.2 ms | 3 servers | coordination writes via a leader |
+| **TigerBeetle** (VSR) | ~1,000,000 txns/s (design); ProtoBeetle ~200,000/s on laptops | heavily batched (up to ~8,189 txns/request) | financial transfers |
+| **Corosync / Totem** (ring TOB) | 30 → 60 MB/s (jumbo frames, 175 KB msgs) | LAN multicast | bandwidth |
+| **Simatic TRAINS 2015** (ring TOB) | +250% *POTE* vs best prior ring protocol @ 10 B | 5 processes | throughput *efficiency* (bytes delivered ÷ transmitted) |
+| **trains-rust** (this work) | 405k msg/s @ 64 B (1 host, TLS ring, batch); ~1.7k msg/s @ 256 B on EC2 ring 3–12 | various, §3–§6 | broadcast messages |
+
+Sources: [etcd performance docs](https://etcd.io/docs/v3.5/op-guide/performance/);
+Junqueira et al., *Zab* (DSN 2011) and the ZooKeeper benchmarks;
+[TigerBeetle](https://tigerbeetle.com/); Corosync Totem documentation; Simatic
+et al., *TRAINS* (CFIP/NOTERE 2015).
+
+Two honest observations come out of it.
+
+1. **The leader-based coordination systems and TRAINS occupy different points,
+   so the cross-paper numbers don't line up.** etcd (~30k req/s) and ZooKeeper
+   (~21k writes/s) count *durable replicated operations through a leader* on a
+   small cluster at low-millisecond latency. TRAINS counts *broadcast messages*
+   and deliberately trades single-message latency (two ring laps) for
+   small-message throughput. The only apples-to-apples comparison in this study
+   is the one we ran ourselves on the same box and harness — the openraft
+   head-to-head in §3 — not these figures.
+2. **The two numbers from TRAINS's own family are the most telling.** Corosync's
+   Totem — the other production ring total-order broadcast — reports throughput
+   in **MB/s and is bandwidth-bound**, which is exactly the regime trains-rust
+   enters at large payloads (it plateaus around 135–145 MiB/s on one host, §3).
+   And Simatic's 2015 TRAINS reports a throughput-*efficiency* peak for **small
+   messages**, which is the same thesis our 64 B numbers show from a different
+   angle. TigerBeetle's million-a-second is a useful reminder from a different
+   problem entirely: it is *batching* (thousands of transfers per request), not
+   the consensus protocol, that produces headline throughput — a lever TRAINS
+   also pulls (a train is a batch) and one any fair comparison has to hold equal.
+
+Treat the table as a map, not a leaderboard: it shows that TRAINS sits in the
+small-message-throughput / bandwidth-bound-at-scale corner, alongside the other
+ring protocols, and at a different point from the leader-based logs that
+optimise low-latency durable operations.
+
+---
+
+## 9. Conclusion
 
 On one machine, TRAINS' multi-train pipeline beats a leader-based log on small
 messages and trails it on bandwidth-bound payloads at `K = 2`, exactly as the
@@ -252,6 +314,12 @@ aligned to live load it preserves total-order safety unconditionally, masks
 transient faults with quantified recovery, and — in the build tested — halted on
 a permanent crash, the gap the now-verified rejoin layer closes. Every result is
 reproducible from a config and a script, with per-run provenance.
+
+Read on the right axis, the picture is consistent: on the **control-plane**
+workload it is built for — small messages, small clusters, total order,
+consistency over availability — TRAINS has a clean, well-characterised envelope.
+It is not, and does not try to be, a bulk data-plane engine. The honest summary
+is "a good fit for ordered, consistency-first coordination," not "a faster Raft."
 
 ---
 
@@ -268,6 +336,11 @@ reproducible from a config and a script, with per-run provenance.
 - L. Shalev et al. *A Cloud-Optimized Transport Protocol (SRD).* IEEE Micro
   40(6), 2020.
 - A. Basiri et al. *Chaos Engineering.* IEEE Software 33(3), 2016.
+- etcd, *Performance* (official docs, v3.5). https://etcd.io/docs/v3.5/op-guide/performance/
+- F. Junqueira, B. Reed, M. Serafini. *Zab: High-performance broadcast for
+  primary-backup systems.* DSN 2011. (ZooKeeper, USENIX ATC 2010.)
+- TigerBeetle (VSR) — published throughput figures, https://tigerbeetle.com/
+- Corosync Cluster Engine — Totem single-ring protocol documentation.
 
 ---
 

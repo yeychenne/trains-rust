@@ -46,6 +46,46 @@ cli + ao.
   + log-reconciliation state machine. That small surface is *why* exhaustive
   model checking and a line-comparable reference implementation are tractable.
 
+### 1.1 The broader landscape: who ships a spec with the code
+
+Widening beyond consensus *libraries* to the production systems that actually
+run total-order broadcast, replication, and group communication, the
+formal-methods picture sorts into a few bands (LOC measured where cheap; "—" =
+large, not measured for this draft):
+
+| System | Family | Lang | Formal artifact **in-repo** | Notes / source |
+|---|---|---|---|---|
+| [etcd-io/raft](https://github.com/etcd-io/raft) | Raft | Go | **TLA+ + trace validation** | spec checks *running* traces |
+| [mongodb/mongo](https://github.com/mongodb/mongo) | Raft-like replication | C++ | **TLA+** (`src/mongo/tla_plus/`) | replication + sharding/reconfig specs |
+| [apache/zookeeper](https://github.com/apache/zookeeper) | ZAB atomic broadcast | Java | **TLA+** (`zookeeper-specifications/`) | `Zab.tla` + a system spec |
+| [corosync/corosync](https://github.com/corosync/corosync) | **Totem ring TOB** + membership | C | none | ~15.8k LOC totem; Totem's proofs are in 1990s papers, not the repo |
+| [simatic/TrainsProtocol](https://github.com/simatic/TrainsProtocol) | **TRAINS ring TOB** | C | none | ~5.1k LOC; the canonical academic TRAINS |
+| **trains-rust** | **ring TOB** | Rust | **TLA+ + Ivy + DRT** | 2.4k-LOC kernel; this repo |
+| [apache/kafka](https://github.com/apache/kafka) (KRaft) | Raft variant | Java/Scala | not found in-repo | external KRaft TLA+ models exist |
+| [tigerbeetle](https://github.com/tigerbeetle/tigerbeetle) | Viewstamped Replication | Zig | none | no published mechanical proof; heavy deterministic-simulation testing |
+| [redis](https://github.com/redis/redis) Sentinel | HA / failover | C | **none** | ~5.5k LOC `sentinel.c`; Jepsen measured acked-write loss (below) |
+
+Three things stand out.
+
+1. **A small but real cohort ships a formal spec *in the same repository* as the
+   code — etcd-raft, MongoDB, ZooKeeper.** etcd goes further and ties the spec to
+   the *running* code via trace validation. This is the standard worth holding up.
+2. **In the ring-based total-order-broadcast family specifically — TRAINS's own
+   family — none of the prior production implementations ship a formal spec.**
+   Corosync's Totem (~15.8k LOC) and Simatic's TrainsProtocol (~5.1k LOC) are
+   battle-tested but unspecified in-repo; the Totem protocol's correctness lives
+   in 1990s papers. To our knowledge `trains-rust` is the first ring-TOB
+   implementation to co-locate a machine-checked spec, a reference
+   implementation, and differential testing.
+3. **At the other end, the system most people run for Redis HA — Sentinel — has
+   no formal model at all,** and its safety has been characterised *empirically*
+   as **losing** acknowledged writes: Jepsen's "Call me maybe: Redis" recorded
+   1,126 of 1,998 acknowledged writes discarded in a single partition — by
+   design (asynchronous replication), not as a bug
+   ([Jepsen](https://aphyr.com/posts/283-jepsen-redis);
+   [Redis docs](https://redis.io/docs/latest/operate/oss_and_stack/management/sentinel/)).
+   This is the gap `trains-valkey` targets.
+
 ---
 
 ## 2. Is the proof in the box?
@@ -71,15 +111,19 @@ machine-checked proofs; the open-source library you deploy is, with one
 exception below, not the proven artifact.* The proof and the production code are
 two different programs that are believed to implement the same algorithm.
 
-**(b) Formal model co-located with production code (rare, exemplary).**
-[etcd-io/raft](https://github.com/etcd-io/raft) ships, in-repo, a TLA+ spec of
-*its own* algorithm — "including the distinctive behaviors like membership
-reconfiguration that differentiate it from the classic Raft algorithm" — plus
-**model-based trace validation** (`Traceetcdraft.tla`): the running Go
-implementation emits a trace, and TLC checks that trace against the spec. This
-does not make the Go code a Coq-extracted proof, but it is a real, maintained,
-runtime-checked correspondence between spec and production code — and it is the
-exception, not the rule.
+**(b) Formal model co-located with production code (rare, but a real cohort).**
+A handful of production systems ship a TLA+ spec *in the same repository* as the
+code: **MongoDB** (`src/mongo/tla_plus/` — replication and sharding/reconfig),
+**ZooKeeper** (`zookeeper-specifications/` — a ZAB spec and a system spec), and
+**etcd-raft**. [etcd-io/raft](https://github.com/etcd-io/raft) goes one step
+further: alongside a TLA+ spec of *its own* algorithm — "including the
+distinctive behaviors like membership reconfiguration that differentiate it from
+the classic Raft algorithm" — it ships **model-based trace validation**
+(`Traceetcdraft.tla`): the running Go implementation emits a trace, and TLC
+checks that trace against the spec. None of these make the production code a
+Coq-extracted proof, but they are real, maintained specs living with the code —
+and etcd's trace validation is a runtime-checked correspondence between spec and
+production code that almost nobody else has.
 
 **(c) trains-rust.** This repository co-locates the TLA+/Ivy spec, a
 line-comparable **reference implementation**, and a **differential random
@@ -127,7 +171,17 @@ elsewhere, link manual or none."
   differently (etcd splits subpackages; openraft is a framework with runtimes,
   stores, examples). The table uses the primary source directory and excludes
   tests; reasonable people would draw some lines differently.
-- **Snapshot.** Measured on shallow clones on 2026-06-22; upstreams move.
+- **Snapshot.** Measured on shallow clones on 2026-06-22/23; upstreams move.
+  LOC for the §1.1 systems (MongoDB, ZooKeeper, Kafka, TigerBeetle) were not
+  measured (large, multi-purpose repos); only the directly-comparable cores
+  (Sentinel `sentinel.c` ~5.5k, Corosync totem ~15.8k, simatic/TrainsProtocol
+  ~5.1k) were counted.
+- **In-repo TLA+ claims** for MongoDB (`src/mongo/tla_plus/`) and ZooKeeper
+  (`zookeeper-specifications/`) are from GitHub code search (file paths
+  confirmed). **Kafka KRaft** has published TLA+ models, but none were located
+  in the apache/kafka repo by this search — treat "not found in-repo" as exactly
+  that. **TigerBeetle** ships no TLA+ but is known for extensive
+  deterministic-simulation testing.
 - **Verification claims** for Verdi and IronFleet are from their papers/repos
   and are well established; the etcd TLA+/trace-validation claim is from the
   spec and README in `etcd-io/raft/tla/` (inspected directly). The "no in-repo
@@ -138,14 +192,26 @@ elsewhere, link manual or none."
 
 ## 5. Takeaway (draft)
 
-Production consensus is 6k–50k lines of trusted code. Proofs of these protocols
-exist but, with the notable exception of etcd-raft's in-repo TLA+ + trace
-validation, live in separate research artifacts (Verdi, IronFleet) or in papers
-whose correspondence to the deployed binary is informal. The interesting, rarely
-reported metric is not "is the algorithm proven" but "is there a *maintained,
-automated link* from the code that runs to the model that was checked." TRAINS
-is built to score on that axis: a small kernel, a co-located spec, a reference
-implementation, and differential testing — the proof travels with the code.
+Production consensus and broadcast is 5k–50k lines of trusted code. A small
+cohort ships a formal spec in the same repo — etcd-raft, MongoDB, ZooKeeper —
+and etcd alone ties that spec to the running code with trace validation. Most
+proofs, though, live in separate research artifacts (Verdi, IronFleet) or in
+papers whose correspondence to the deployed binary is informal; and the system
+most people run for Redis HA, Sentinel, has no formal model and is empirically
+known to lose acknowledged writes.
 
-*Sources: repositories linked inline; Wilcox et al., "Verdi" (PLDI 2015);
-Hawblitzel et al., "IronFleet" (SOSP 2015); etcd-io/raft `tla/` spec + README.*
+Two findings are worth carrying out of this draft. First, the interesting,
+rarely-reported metric is not "is the algorithm proven" but "is there a
+*maintained, automated link* from the code that runs to the model that was
+checked" — on that axis the population is tiny (etcd-raft, trains-rust). Second,
+in the ring-based total-order-broadcast family specifically — Totem/Corosync,
+Simatic's TrainsProtocol, and TRAINS — `trains-rust` appears to be the **first**
+to co-locate a machine-checked spec, a reference implementation, and
+differential testing. A 2.4k-LOC kernel is what makes that maintainable: the
+proof travels with the code.
+
+*Sources: repositories linked inline; Défago, Schiper & Urbán, "Total Order
+Broadcast … Taxonomy and Survey" (ACM CS 2004); Wilcox et al., "Verdi" (PLDI
+2015); Hawblitzel et al., "IronFleet" (SOSP 2015); Kingsbury, "Call me maybe:
+Redis" (Jepsen, 2013); etcd-io/raft, mongodb/mongo, apache/zookeeper specs
+(paths confirmed by code search).*
