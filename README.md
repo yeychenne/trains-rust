@@ -89,6 +89,7 @@ The original TRAINS paper + blog live under `docs/`:
 - [`docs/paper-benchmarks.md`](docs/paper-benchmarks.md) — benchmark paper: throughput, scaling, and fault behaviour from laptop to Tailscale to EC2
 - [`docs/lineage-and-train-protocol.md`](docs/lineage-and-train-protocol.md) — lineage + code-oriented train explanation + Raft/Paxos mapping
 - [`docs/DRAFT-proof-to-production-survey.md`](docs/DRAFT-proof-to-production-survey.md) — *draft*: implementation size + proof-to-production correspondence across open-source Raft/Paxos/gossip
+- [`docs/evolution-s3-lessons.md`](docs/evolution-s3-lessons.md) — looking forward: S3-inspired lessons for continuous verification, audit, and repair across `trains-rust` and `trains-valkey`
 
 The trains-valkey application paper (which uses TRAINS to give Valkey/Redis
 loss-free failover) lives in the [trains-valkey](https://github.com/yeychenne/trains-valkey)
