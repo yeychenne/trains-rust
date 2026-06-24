@@ -84,7 +84,7 @@ The original TRAINS paper + blog live under `docs/`:
 
 - [`docs/paper.md`](docs/paper.md) — protocol paper
 - [`docs/blog.md`](docs/blog.md) — engineering blog
-- [`docs/blog-simatic.md`](docs/blog-simatic.md) — Siemens / industrial-automation framing
+- [`docs/blog-simatic.md`](docs/blog-simatic.md) — Michel Simatic's academic continuation + industrial-automation framing
 - [`docs/diagrams.md`](docs/diagrams.md) — protocol diagrams
 - [`docs/paper-benchmarks.md`](docs/paper-benchmarks.md) — benchmark paper: throughput, scaling, and fault behaviour from laptop to Tailscale to EC2
 - [`docs/lineage-and-train-protocol.md`](docs/lineage-and-train-protocol.md) — lineage + code-oriented train explanation + Raft/Paxos mapping

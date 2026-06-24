@@ -524,6 +524,21 @@ TLC proves correct. The implementation must then *refine* this atomic
 action; the no-regression UTO (2.66 M states) and N4 (2.86 M) configs
 confirm the static-membership behaviour is unchanged.
 
+**Liveness of re-admission.** The static-membership `EventualDelivery`
+liveness theorem (§5.1) only covers UTO-mode runs.  The membership
+round needed its own liveness check, and we added one
+(`TRAINS_MC_TO_liveness.cfg` against `SpecTOLiveness` and the
+`EventualReAdmit` property) — a small model with `MaxClock=3` and one
+issuer, under Strong Fairness on `ReAdmit`.  The property checks that
+under fair scheduling, every crashed process eventually exits
+`crashed` (modulo the bounded model's clock budget — captured
+explicitly in a disjunct so TLC does not false-positive on the model
+ceiling rather than the protocol).  Result: 3,819 distinct states, 1 s
+wall-clock, no violation — strong fairness on `ReAdmit` is sufficient,
+and the protocol itself does not starve recovery.  This is the
+membership-round equivalent of the static `EventualDelivery` proof and
+closes the previously-open liveness gap for the v3 work.
+
 ### 5.3 Differential random testing (DRT)
 
 We implemented a **reference implementation** (`verification/reference/`)
@@ -605,14 +620,27 @@ Apalache configuration: `Procs = {0, 1, 2}`, `NumTrains = 2`,
 
 Results at bounded length `k` (state-transition depth bound):
 
-| Invariant            | Result (k=5) | Result (k=8) |
-|----------------------|--------------|--------------|
-| Snowcat type-check   | ✅ OK         | n/a          |
-| `ConsistentDelivery` | ✅ NoError    | ✅ NoError (103 s) |
-| `NoSpuriousDelivery` | ✅ NoError    | —            |
-| `ClockMonotonicity`  | ✅ NoError    | —            |
-| `TrainIntegrity`     | ✅ NoError    | —            |
-| `IssuerUniqueness`   | ✅ NoError    | —            |
+| Invariant            | Mode | Result (k=5) | Result (k=8) | Wall |
+|----------------------|------|--------------|--------------|------|
+| Snowcat type-check   | n/a  | ✅ OK         | n/a          | < 1 s |
+| `ConsistentDelivery` | UTO  | ✅ NoError    | ✅ NoError    | 103 s |
+| `NoSpuriousDelivery` | UTO  | ✅ NoError    | —            | 4.1 s |
+| `ClockMonotonicity`  | UTO  | ✅ NoError    | —            | 4.9 s |
+| `TrainIntegrity`     | UTO  | ✅ NoError    | —            | 5.5 s |
+| `IssuerUniqueness`   | UTO  | ✅ NoError    | —            | 5.4 s |
+| `ConsistentDelivery` | **TO** | —          | ✅ NoError    | 36 m 38 s (2026-06-23) |
+| `OtherSafetyTO` (combined)  | **TO** | —    | ✅ NoError | 6 h 17 m 58 s (2026-06-24/25) |
+
+The TO-mode rows extend the bounded symbolic check to dynamic
+membership (the `Reconfigure` exclude and `ReAdmit` re-admit actions
+in `Next`).  This was previously TLC-only — the 6.28M-state safety run
+of §5.2 — so the Apalache TO-mode result is the symbolic complement
+that gives independent depth-8 evidence the membership round preserves
+the safety invariants.  `OtherSafetyTO` conjoins the four
+non-`ConsistentDelivery` safety invariants
+(`ClockMonotonicity ∧ NoSpuriousDelivery ∧ TrainIntegrity ∧
+IssuerUniqueness`) into a single run, amortising the SMT exploration
+cost over all four.
 
 Apalache's bounded symbolic check is **strictly stronger** than TLC's
 explicit-state check at the same depth: TLC enumerates concrete

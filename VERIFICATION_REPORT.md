@@ -15,6 +15,7 @@ specification at three levels:
 |------|------|------|
 | **Spec safety + liveness** | TLC (3 model sizes) | ✅ N=3/MaxClock=4: 1.09M states; N=3/MaxClock=6: 2.66M; N=4: 2.86M — all pass |
 | **Re-admission safety (v3)** | TLC (TO mode) | ✅ N=3/MaxClock=4 with `ReAdmit`: 6.28M distinct states, no error — `ConsistentDelivery` preserved across re-admission (membership grows *and* shrinks) |
+| **Re-admission liveness** | TLC (TO mode + SF on `ReAdmit`) | ✅ N=3/MaxClock=3 small-model: 3,819 distinct states, no error — `EventualReAdmit` holds: under strong fairness, every crashed process eventually exits `crashed` (modulo the model's finite clock budget) |
 | **Implementation vs adversarial schedules** | PropTest | ✅ 256 random schedules incl. crash injection, no violations |
 | **Implementation vs reference** | PropTest DRT | ✅ 384 random cases, no divergences |
 | **Leaf-function correctness** | Kani (CBMC) | ✅ 8/8 harnesses verified in 0.23s total |
@@ -123,6 +124,76 @@ counterexamples surface as the model grows.
 **Files**: `verification/tla/TRAINS_MC_N4.cfg`,
 `claude-agents/outputs/{tlc_maxclock6.txt, tlc_n4.txt}`.
 
+### TLC liveness for dynamic membership (`EventualReAdmit`)
+
+The `EventualDelivery` liveness property in Phase A above is checked
+*only on the static-membership spec* (UTO).  The membership round
+(`Reconfigure`/`ReAdmit`) has, until now, only been TLC-safety-verified
+(the 6.28M-state run referenced in the executive summary).  This
+sub-phase closes the liveness gap.
+
+**The property** — defined in `TRAINS_MC.tla` under "LIVENESS FOR
+DYNAMIC MEMBERSHIP":
+
+```tla
+EventualReAdmit ==
+  \A p \in Procs :
+    (p \in crashed) ~> (p \notin crashed \/ ModelClockExhausted)
+```
+
+The disjunct `ModelClockExhausted == \A q \in Issuers : issClk[q] >=
+MaxClock` is the honest acknowledgement that TLC's finite model
+legitimately disables `ReAdmit` once every live issuer has used its
+clock budget — the model bound, not a protocol failure.  Without that
+disjunct TLC finds the obvious counter-example where the clock
+ceiling, not the protocol, stops re-admit.
+
+**Fairness** — added in the same MC module:
+
+```tla
+MembershipFairness == \A p \in Procs : SF_vars(ReAdmit(p))
+
+SpecTOLiveness ==
+  Init /\ [][Next]_vars /\ Fairness /\ MembershipFairness
+```
+
+Strong fairness (not weak) because between view-change steps `ReAdmit`
+can be transiently disabled (e.g. a survivor's clock catches up to
+`MaxClock` momentarily).  `Reconfigure` deliberately gets no fairness
+— crashes are environmental, not forced.
+
+**Model** — small on purpose; TLC liveness is 5-10× slower than
+safety, and the safety configs already cover the bigger 6.28M
+state-space.  This run targets a clean liveness claim:
+
+```
+Procs       = {0, 1, 2}
+NumTrains   = 1
+Messages    = {m1}
+MaxClock    = 3
+MaxPending  = 1
+Mode        = "TO"
+SYMMETRY    = disabled  (TLC warns symmetry can mask liveness violations)
+```
+
+Config: `verification/tla/TRAINS_MC_TO_liveness.cfg`.
+
+**Result** (2026-06-24):
+
+| Metric                | Value |
+|-----------------------|------:|
+| States generated      | 8,300 |
+| Distinct states found | 3,819 |
+| Search depth          | 19 |
+| Wall-clock            | 1 s |
+| Result                | ✅ `Model checking completed. No error has been found.` |
+
+What this proves: under strong fairness on `ReAdmit`, the protocol
+itself does not starve recovery — every crashed process eventually
+exits `crashed` (modulo the finite model's clock budget, captured
+explicitly in the disjunct).  Catches the failure mode "ReAdmit is
+permanently disabled by something the protocol does." None exists.
+
 ### Phase F — Apalache symbolic check
 
 **Tool**: Apalache 0.57.0 (SMT backend = Z3).  Where TLC enumerates
@@ -156,15 +227,17 @@ TLC continues to pass on the rewritten spec (`MaxClock=6` config:
 
 **Results**:
 
-| Invariant            | Length | Result    | Wall   |
-|----------------------|--------|-----------|--------|
-| Snowcat type-check   | n/a    | ✅ OK      | < 1 s |
-| `ConsistentDelivery` | 5      | ✅ NoError | 3.4 s |
-| `ConsistentDelivery` | 8      | ✅ NoError | 103 s |
-| `NoSpuriousDelivery` | 5      | ✅ NoError | 4.1 s |
-| `ClockMonotonicity`  | 5      | ✅ NoError | 4.9 s |
-| `TrainIntegrity`     | 5      | ✅ NoError | 5.5 s |
-| `IssuerUniqueness`   | 5      | ✅ NoError | 5.4 s |
+| Invariant            | Mode | Length | Result    | Wall   |
+|----------------------|------|--------|-----------|--------|
+| Snowcat type-check   | n/a  | n/a    | ✅ OK      | < 1 s |
+| `ConsistentDelivery` | UTO  | 5      | ✅ NoError | 3.4 s |
+| `ConsistentDelivery` | UTO  | 8      | ✅ NoError | 103 s |
+| `NoSpuriousDelivery` | UTO  | 5      | ✅ NoError | 4.1 s |
+| `ClockMonotonicity`  | UTO  | 5      | ✅ NoError | 4.9 s |
+| `TrainIntegrity`     | UTO  | 5      | ✅ NoError | 5.5 s |
+| `IssuerUniqueness`   | UTO  | 5      | ✅ NoError | 5.4 s |
+| `ConsistentDelivery` | **TO** | 8    | ✅ NoError | 36 m 38 s (2026-06-23) |
+| `OtherSafetyTO` (combined: ClockMonotonicity ∧ NoSpuriousDelivery ∧ TrainIntegrity ∧ IssuerUniqueness) | **TO** | 8 | ✅ NoError | 6 h 17 m 58 s (2026-06-24/25) |
 
 **What's still not done**: an unbounded **inductive-invariant** check
 (find `IndInv` such that `Init ⇒ IndInv` and `IndInv ∧ Next ⇒ IndInv'`,

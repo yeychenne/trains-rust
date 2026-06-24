@@ -16,22 +16,28 @@ symbolically, not by enumeration.
 
 ## Install Ivy
 
-```bash
-pip install z3-solver
-git clone https://github.com/kenmcmil/ivy
-cd ivy
-python setup.py install
-```
+**Status (2026-06-24): the install path below is the canonical one but the
+maintained `ms-ivy` distribution only ships Linux x86_64 wheels (1.8.26 on
+PyPI); the GitHub `master` branch is still Python 2 in places.  `ivy_check`
+has therefore not been executed on this spec yet.  See "Running on
+non-Linux hosts" below for the practical paths.**
 
-Requires Python 3.8+, z3 ≥ 4.12.
-
-## Run the proof
+### Canonical (Linux x86_64)
 
 ```bash
+pip install ms-ivy            # 1.8.26 — Python ≥ 3.10
 ivy_check trains.ivy
 ```
 
-Expected output:
+### Running on non-Linux hosts
+
+| Host           | Path                                                                                 |
+|----------------|--------------------------------------------------------------------------------------|
+| macOS arm64    | Docker: `docker run --rm --platform linux/amd64 -v "$PWD":/w -w /w python:3.11-slim bash -c 'pip install ms-ivy && ivy_check trains.ivy'` |
+| macOS x86_64   | Same Docker command, or native Linux VM                                              |
+| Windows        | WSL2 Ubuntu + `pip install ms-ivy`                                                   |
+
+### Expected outcome
 
 ```
 trains.ivy: OK
