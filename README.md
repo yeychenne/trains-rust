@@ -4,11 +4,22 @@
 as etcd and ZooKeeper, not a data-plane replication engine. A small group of
 nodes agree on one order for a stream of small, order-critical messages (config,
 membership, leases, locks, coordination events) and apply them identically, so
-the group behaves like a single consistent machine. It is **consistency-first**:
-under a partition it halts rather than diverge (the CP corner of CAP) — the
-correct stance for a control plane, where split-brain is catastrophic. Unlike
-Paxos and Raft there is no leader: the right to order travels a logical ring as
-a circulating "train," so every node does equal work.
+the group behaves like a single consistent machine. Unlike Paxos and Raft there
+is no leader: the right to order travels a logical ring as a circulating
+"train," so every node does equal work.
+
+In the [PACELC taxonomy](https://en.wikipedia.org/wiki/PACELC_design_principle)
+(Abadi 2012, the modern refinement of CAP), TRAINS is **PC/EC** — the same class
+as etcd, ZooKeeper, and Spanner. Under a network **P**artition it chooses
+**C**onsistency over availability: the ring halts and survivors stop ordering
+rather than diverge into split-brain — the correct stance for a control plane,
+verified here in TLA+/TLC and Apalache. **E**lse (no partition) it still chooses
+**C**onsistency over **L**atency: a full ring lap to collect acks, a second to
+confirm delivery — slower than a leader-based quorum round-trip on a single
+message, in exchange for keeping the global order machine-checkable. The closest
+counter-example, Redis Sentinel, is **PA/EL** under the same taxonomy — the
+opposite end of the grid, and exactly the trade-off the companion
+[trains-valkey](https://github.com/yeychenne/trains-valkey) proxy inverts.
 
 What makes this implementation unusual is not speed — it is **how little code it
 is and how thoroughly it is checked**: a **~2,360-line protocol kernel**

@@ -236,6 +236,34 @@ input through a reference and an optimised implementation and
 asserting equivalence — is heavily used at AWS for the Cedar policy
 language [Cutler et al. 2024] and s2n-quic [s2n-quic 2024].
 
+### 2.5 Consistency–availability positioning (CAP and PACELC)
+
+The CAP theorem [Gilbert & Lynch 2002] states that under a network
+partition a system cannot be both consistent and available. TRAINS,
+tested under partition at Cegelec in 1992, halted rather than diverge
+— the CP choice, eight years before the theorem had a name (§1.1).
+
+CAP, however, describes only the partition case. PACELC [Abadi 2012]
+extends it to the common case: **if a Partition occurs, choose
+Availability or Consistency; Else (no partition), choose Latency or
+Consistency**. Every system thus carries a two-axis label.
+
+Under PACELC, TRAINS is **PC/EC**. Under partition it is PC: the ring
+halts and survivors stop ordering until a view change names a new
+successor (the safety of which is the property verified in §5). In the
+normal case it is EC: uniform total order requires that *every* live
+node acknowledge a train before it is deliverable, which costs a full
+ring traversal for ack collection and a second for delivery
+confirmation (§3.3) — strictly more latency than a leader-based
+protocol's single quorum round-trip, traded for a globally agreed,
+machine-checkable order. This places TRAINS in the same PACELC class as
+ZooKeeper, etcd, and Spanner [Corbett et al. 2013], and the opposite
+class from Redis Sentinel (**PA/EL**: available-but-divergent under
+partition, low-latency-but-eventually-consistent otherwise), which is
+the comparison the companion `trains-valkey` system makes concrete (§7).
+The PACELC label is not merely descriptive: the PC half is verified, and
+the EC half follows structurally from the two-lap delivery scheme.
+
 ---
 
 ## 3. The TRAINS Protocol
@@ -1172,12 +1200,16 @@ report, is openly available at
 
 ## References
 
+- Abadi, D. "Consistency Tradeoffs in Modern Distributed Database System
+  Design: CAP is Only Part of the Story." *IEEE Computer* 45(2):37–42, 2012.
 - Amin, N. et al. "Model Checking Rust Programs with Kani." *ICSE 2023*.
 - Cristian, F. "Reaching Agreement on Processor-Group Membership in
   Synchronous Distributed Systems." *Distributed Computing* 4:175–187, 1991.
 - Cristian, F., Aghili, H., Strong, R. & Dolev, D. "Atomic Broadcast: From
   Simple Message Diffusion to Byzantine Agreement." *Information and
   Computation* 118(1):158–179, 1995. (Orig. *FTCS-15*, 1985.)
+- Corbett, J. C. et al. "Spanner: Google's Globally-Distributed Database."
+  *OSDI 2012*; *ACM TOCS* 31(3), 2013.
 - Cutler, J. et al. "How AWS Built Cedar: A Differential-Tested
   Authorization Engine." 2024.
 - Défago, X., Schiper, A. & Urbán, P. "Total Order Broadcast and Multicast
@@ -1188,6 +1220,9 @@ report, is openly available at
   train." US Patent 5,483,520 A, Cegelec SA; filed 1994-10-20, granted
   1996-01-09. (Companion: Baradel, Eychenne & Kohen, "Software system having
   replicated objects and using dynamic messaging," US 5,488,723 A, 1996.)
+- Gilbert, S. & Lynch, N. "Brewer's Conjecture and the Feasibility of
+  Consistent, Available, Partition-Tolerant Web Services." *ACM SIGACT
+  News* 33(2):51–59, 2002.
 - Hadzilacos, V. & Toueg, S. "A Modular Approach to Fault-Tolerant
   Broadcasts and Related Problems." Cornell TR94-1425, 1994.
 - Hopwood, P. "PropTest: Hypothesis-Style Property Testing for Rust." 2014.
