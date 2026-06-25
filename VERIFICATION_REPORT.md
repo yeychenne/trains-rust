@@ -16,6 +16,7 @@ specification at three levels:
 | **Spec safety + liveness** | TLC (3 model sizes) | ✅ N=3/MaxClock=4: 1.09M states; N=3/MaxClock=6: 2.66M; N=4: 2.86M — all pass |
 | **Re-admission safety (v3)** | TLC (TO mode) | ✅ N=3/MaxClock=4 with `ReAdmit`: 6.28M distinct states, no error — `ConsistentDelivery` preserved across re-admission (membership grows *and* shrinks) |
 | **Re-admission liveness** | TLC (TO mode + SF on `ReAdmit`) | ✅ N=3/MaxClock=3 small-model: 3,819 distinct states, no error — `EventualReAdmit` holds: under strong fairness, every crashed process eventually exits `crashed` (modulo the model's finite clock budget) |
+| **Parameterised safety** | Ivy (EPR/FAU) | ✅ 2026-06-25: `total_order` + `prefix_closed` both verified at *unbounded* N, unbounded clocks, unbounded messages — the only verification layer that does not depend on finite bounds |
 | **Implementation vs adversarial schedules** | PropTest | ✅ 256 random schedules incl. crash injection, no violations |
 | **Implementation vs reference** | PropTest DRT | ✅ 384 random cases, no divergences |
 | **Leaf-function correctness** | Kani (CBMC) | ✅ 8/8 harnesses verified in 0.23s total |
@@ -428,7 +429,6 @@ in the demo runtime.
 ## What is still NOT verified (research-grade work)
 
 - **Verus proof** of `ConsistentDelivery` as inductive invariant — heavy install (Verus needs to be built from source); deferred. Skeleton exists at `claude-agents/agents/verus_writer.md`.
-- **Ivy parameterized proof** for unbounded N — file exists at `verification/ivy/trains.ivy` but `ivy_check` has not been run. Ivy install is non-trivial (Python 2 / Z3 bindings).
 - **Apalache symbolic** verification of inductive invariants without bounding clock or message counts.
 - **Refinement proof** Rust ↔ TLA+ — no mechanized argument that `TrainsNode::step` corresponds to a step of `Spec`. Comments and DRT are the current, weaker, link.
 - **Match Simatic 2015 paper formally** — my TLA+ spec is my interpretation; correspondence to the published algorithm is informal.

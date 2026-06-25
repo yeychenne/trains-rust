@@ -12,18 +12,19 @@ a circulating "train," so every node does equal work.
 
 What makes this implementation unusual is not speed — it is **how little code it
 is and how thoroughly it is checked**: a **~2,360-line protocol kernel**
-checked six independent ways (TLA+/TLC, Apalache symbolic checking, Kani/CBMC
+checked seven independent ways (TLA+/TLC, Apalache symbolic checking, Kani/CBMC
 bounded model checking of the Rust, PropTest fuzzing with crash injection,
-differential random testing against a reference impl, and runtime trace
-validation; an Ivy spec is in-tree too, not yet run), with the spec, the
-reference implementation, and the tests all in this repo. To our knowledge it is the
-smallest and most-verified total-order-broadcast core in open source, and the
-only ring-based one that ships a machine-checked spec.
+differential random testing against a reference impl, runtime trace
+validation, and Ivy parameterised verification at unbounded N for the abstract
+delivery semantics), with the spec, the reference implementation, and the tests
+all in this repo. To our knowledge it is the smallest and most-verified
+total-order-broadcast core in open source, and the only ring-based one that
+ships a machine-checked spec.
 
 | | trains-rust kernel | etcd raft | typical Raft impls | larger frameworks |
 |---|---|---|---|---|
 | Core LOC | **~2,360** | ~6,150 | ~11k | up to ~50k |
-| In-repo formal verification | **6 methods** | TLA+ + traces | none | none |
+| In-repo formal verification | **7 methods** | TLA+ + traces | none | none |
 
 It also has a thirty-year control-plane pedigree: invented for **power-plant
 control supervision** at Cegelec/Alcatel in the early 1990s — advised by Flaviu

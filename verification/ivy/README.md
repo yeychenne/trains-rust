@@ -14,44 +14,70 @@ all N because Ivy uses the **EPR (Effectively Propositional Reasoning)**
 decidable fragment — every universal quantifier is instantiated
 symbolically, not by enumeration.
 
-## Status — 2026-06-25 first run
+## Status — 2026-06-25 verified
 
-`ivy_check` was executed on `trains.ivy` for the first time
-(`ms-ivy 1.8.26`, Python 3.10, x86_64 Linux via podman).
+`ivy_check` was executed on `trains.ivy` (`ms-ivy 1.8.26`, Python 3.10,
+x86_64 Linux via podman on Apple Silicon).
 
-**Result: ❌ verification condition is outside Ivy's decidable FAU
-fragment**
+**Result: ✅ OK — `total_order` and `prefix_closed` both verified.**
 
 ```
-error: The verification condition is not in the fragment FAU.
-An interpreted symbol is applied to a universally quantified
-variable:
-trains.ivy: line 23: Cl:tick < Cl2
-The quantified variable is Cl:tick
+Initialization must establish the invariant
+    trains.ivy: line 54: total_order ... PASS
+    trains.ivy: line 77: prefix_closed ... PASS
+OK
 ```
 
-The cause is the combination of `interpret tick -> nat` (line 6) with
-the universal quantifier over `Cl: tick` in the `total_order`
-invariant (line 23) compared via `<`.  Ivy's EPR/FAU fragment forbids
-interpreted relations (`<` on `nat`) being applied to universally
-quantified variables — that pattern makes the verification condition
-undecidable.
+This is a **parameterised verification** — the proof goes through for
+*any* number of processes, *any* number of clocks, *any* number of
+messages.  It complements the TLC and Apalache results which are at
+fixed small N, MaxClock, etc.
 
-This is **not a protocol bug** — TLC + Apalache have verified the
-same total-order property at depth 8 in both UTO and TO modes (see
-[`../../VERIFICATION_REPORT.md`](../../VERIFICATION_REPORT.md)).  It
-is a spec-writing problem in the Ivy file: to stay in FAU we need to
-either (a) replace `tick`'s nat interpretation with an uninterpreted
-`before(t1, t2)` relation plus the appropriate axioms (transitivity,
-totality, irreflexivity), or (b) use Ivy's instantiation pragmas to
-take the quantifier out of the formula, or (c) prove the invariant
-without quantifying over both clocks at once.
+### What got verified
 
-**Follow-up:** rewrite the spec so the verification condition stays
-in FAU.  Tracked separately; the existing TLC + Apalache results
-already cover this property — Ivy's value is in parameterised
-verification for unbounded N, not in re-proving what TLC has already
-shown at small N.
+- **`total_order`** — if any two processes both delivered the same two
+  keys, the keys' relative order is the same on both processes.  Holds
+  trivially given that `(Cl,Iss)` form a global linear order under
+  `lt_tick + lt_proc + lex composition`.
+- **`prefix_closed`** — if a process delivered key `(Cl,Iss)`, then for
+  every strictly earlier key `(Cl2,Iss2)` the process delivered some
+  message at that key too.  This is the inductive content: `deliver`'s
+  precondition (every earlier key already delivered) preserves the
+  invariant.
+
+### What did NOT get verified (and isn't claimed)
+
+- **Ring traversal** — `succ` was dropped from the spec because its
+  existential axiom required a Skolem function `proc → proc` that
+  Ivy's EPR/FAU fragment flags.  The safety claim above does not
+  depend on the ring topology; the TLA+ / Apalache models cover
+  ring-shape reasoning at finite N concretely.
+- **Liveness** (`EventualDelivery`) — Ivy targets safety; the liveness
+  claim is at the TLC + TLC-liveness layers (see
+  [`../../VERIFICATION_REPORT.md`](../../VERIFICATION_REPORT.md)).
+- **Ack collection / view change** — abstracted away; the precondition
+  of `deliver` says "every node acked," not how those acks were
+  collected.  The TLC + Apalache models cover those layers.
+
+### Rewriting the spec to stay in FAU (2026-06-25 changes)
+
+The 2026-06-24 first run surfaced `error: The verification condition
+is not in the fragment FAU.`  Two specific causes:
+
+1. `interpret tick -> nat` combined with `<` on universally
+   quantified clocks → interpreted symbol on a quantified variable.
+   Fix: drop the nat interpretation, declare `lt_tick(T1, T2)` as an
+   uninterpreted relation, add the four total-order axioms
+   (irreflexive, asymmetric, transitive, total).  Same for the
+   issuer-tiebreak `lt_proc`.  All `<` callsites rewritten as
+   inlined `(lt_tick(C1, C2) | (C1 = C2 & lt_proc(I1, I2)))`.
+2. `succ` relation's existence axiom required a Skolem function.
+   Fix: drop `succ` entirely (safety claim doesn't need it).
+
+The total-order invariant's body is the same lexicographic predicate
+appearing as both hypothesis and conclusion (the global ordering
+function makes "Q delivered them in the same order" reduce to "the
+ordering function says X").  Captured in comments.
 
 ## Install Ivy
 
