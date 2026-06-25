@@ -14,13 +14,46 @@ all N because Ivy uses the **EPR (Effectively Propositional Reasoning)**
 decidable fragment — every universal quantifier is instantiated
 symbolically, not by enumeration.
 
-## Install Ivy
+## Status — 2026-06-25 first run
 
-**Status (2026-06-24): the install path below is the canonical one but the
-maintained `ms-ivy` distribution only ships Linux x86_64 wheels (1.8.26 on
-PyPI); the GitHub `master` branch is still Python 2 in places.  `ivy_check`
-has therefore not been executed on this spec yet.  See "Running on
-non-Linux hosts" below for the practical paths.**
+`ivy_check` was executed on `trains.ivy` for the first time
+(`ms-ivy 1.8.26`, Python 3.10, x86_64 Linux via podman).
+
+**Result: ❌ verification condition is outside Ivy's decidable FAU
+fragment**
+
+```
+error: The verification condition is not in the fragment FAU.
+An interpreted symbol is applied to a universally quantified
+variable:
+trains.ivy: line 23: Cl:tick < Cl2
+The quantified variable is Cl:tick
+```
+
+The cause is the combination of `interpret tick -> nat` (line 6) with
+the universal quantifier over `Cl: tick` in the `total_order`
+invariant (line 23) compared via `<`.  Ivy's EPR/FAU fragment forbids
+interpreted relations (`<` on `nat`) being applied to universally
+quantified variables — that pattern makes the verification condition
+undecidable.
+
+This is **not a protocol bug** — TLC + Apalache have verified the
+same total-order property at depth 8 in both UTO and TO modes (see
+[`../../VERIFICATION_REPORT.md`](../../VERIFICATION_REPORT.md)).  It
+is a spec-writing problem in the Ivy file: to stay in FAU we need to
+either (a) replace `tick`'s nat interpretation with an uninterpreted
+`before(t1, t2)` relation plus the appropriate axioms (transitivity,
+totality, irreflexivity), or (b) use Ivy's instantiation pragmas to
+take the quantifier out of the formula, or (c) prove the invariant
+without quantifying over both clocks at once.
+
+**Follow-up:** rewrite the spec so the verification condition stays
+in FAU.  Tracked separately; the existing TLC + Apalache results
+already cover this property — Ivy's value is in parameterised
+verification for unbounded N, not in re-proving what TLC has already
+shown at small N.
+
+## Install Ivy
 
 ### Canonical (Linux x86_64)
 

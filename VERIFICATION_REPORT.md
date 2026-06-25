@@ -117,11 +117,16 @@ larger sizes, two bigger models were also run:
 |---|---:|---:|---:|---|---|
 | `MaxClock=6` (others same) | 2,661,628 | 1,061,977 | 61 | 1m 5s | ✅ |
 | `N=4`, `NumTrains=2`, `MaxClock=4` | 2,863,920 | 1,098,813 | 52 | 1m 2s | ✅ |
+| `N=4`, `NumTrains=2`, `MaxClock=5`, `Messages={m1,m2,m3}` | 18,125,246 | **6,367,398** | **67** | 21m 24s | ✅ (2026-06-25) |
 
 The corrected `AllPriorDelivered` continues to hold; no new
-counterexamples surface as the model grows.
+counterexamples surface as the model grows.  The 2026-06-25 row
+pushes one notch in both clock budget *and* message-set cardinality
+beyond the prior `N=4` ceiling — the 6.37 M-state result extends the
+"no bug at small N" claim further out without surfacing one.
 
 **Files**: `verification/tla/TRAINS_MC_N4.cfg`,
+`verification/tla/TRAINS_MC_N4_bigger.cfg`,
 `claude-agents/outputs/{tlc_maxclock6.txt, tlc_n4.txt}`.
 
 ### TLC liveness for dynamic membership (`EventualReAdmit`)
